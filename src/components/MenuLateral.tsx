@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useRef, useState, type CSSProperties } from 'react'
-import { IconeCampanhas, IconeDados, IconeInicio, IconeMateriais, IconeMetas } from './IconesMenu'
+import { IconeCampanhas, IconeDados, IconeInicio, IconeMateriais, IconeMetas, IconeUsuarios } from './IconesMenu'
 import {
   SUBABAS_CAMPANHAS,
   SUBABAS_DADOS,
@@ -11,7 +11,7 @@ import {
   type SubabaMateriais,
 } from '../lib/navegacao'
 
-export type AbaPrincipal = 'inicio' | 'materiais' | 'metas' | 'campanhas' | 'dados'
+export type AbaPrincipal = 'inicio' | 'materiais' | 'metas' | 'campanhas' | 'dados' | 'usuarios'
 
 interface Props {
   aba: AbaPrincipal
@@ -127,6 +127,7 @@ export function MenuLateral({
               escolher: () => aoMudarSubabaDados(s.valor),
             })),
           },
+          { aba: 'usuarios' as const, rotulo: 'Usuários', icone: <IconeUsuarios />, subitens: [] },
         ]
       : []),
   ]

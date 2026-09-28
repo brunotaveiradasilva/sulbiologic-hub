@@ -1,5 +1,6 @@
 import { diasEntre, somarDias } from './datas'
 import { mesAtual, mesFechado, somarMeses } from './mes'
+import type { DadosUsuario } from './api'
 import type {
   Agendamento,
   ClienteEspecialistaPet,
@@ -132,15 +133,34 @@ export function login(usuario: string): Promise<{ token: string; usuario: string
   return Promise.resolve({ token: 'mock-token', usuario: nome, role, avatar })
 }
 
-export function listarUsuarios(): Promise<UsuarioResumo[]> {
-  return Promise.resolve(
-    usuarios.map((u) => ({ ...u, representanteNome: representantes.find((r) => r.id === u.representanteId)?.nome ?? null })),
-  )
+function comRepresentante(u: UsuarioResumo): UsuarioResumo {
+  return { ...u, representanteNome: representantes.find((r) => r.id === u.representanteId)?.nome ?? null }
 }
 
-export function criarUsuario(usuario: string, role: Role, representanteId: string | null): Promise<void> {
-  usuarios = [...usuarios, { usuario, role, representanteId: role === 'REPRESENTANTE' ? representanteId : null }]
+function aplicarDados(usuario: string, dados: DadosUsuario): UsuarioResumo {
+  return {
+    usuario,
+    ...dados,
+    representanteId: dados.role === 'REPRESENTANTE' ? dados.representanteId : null,
+    nome: dados.nome.trim() || null,
+    sobrenome: dados.sobrenome.trim() || null,
+    email: dados.email.trim() || null,
+  }
+}
+
+export function listarUsuarios(): Promise<UsuarioResumo[]> {
+  return Promise.resolve(usuarios.map(comRepresentante))
+}
+
+export function criarUsuario(usuario: string, dados: DadosUsuario): Promise<void> {
+  usuarios = [...usuarios, aplicarDados(usuario, dados)]
   return Promise.resolve()
+}
+
+export function atualizarUsuario(usuario: string, dados: DadosUsuario): Promise<UsuarioResumo> {
+  const atualizado = aplicarDados(usuario, dados)
+  usuarios = usuarios.map((u) => (u.usuario === usuario ? atualizado : u))
+  return Promise.resolve(comRepresentante(atualizado))
 }
 
 export function excluirUsuario(usuario: string): Promise<void> {
