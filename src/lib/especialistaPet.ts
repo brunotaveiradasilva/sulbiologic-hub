@@ -20,6 +20,9 @@ export interface DescontoEspecialistaPet {
   valor: number
 }
 
+/** Desconto a mais no produto foco para quem comprou NATTU WILD no mês (Combo Wild). */
+const BONUS_WILD = 7
+
 /**
  * Desconto que o cliente conquista, sobre o realizado em R$ a preço de tabela (sem desconto), em duas
  * partes. A faixa da campanha: bater a meta de todos os SKUs dá 10% (numérica) ou 5% (ponderada);
@@ -27,6 +30,8 @@ export interface DescontoEspecialistaPet {
  *
  * - Sem o produto foco: o R$ dos outros SKUs × a faixa.
  * - Produto foco: o R$ do foco × a faixa, só se bateu a meta de foco — senão 0%.
+ * - Combo Wild: comprou qualquer coisa da linha NATTU WILD, ganha +7% no R$ do foco, somado ao que
+ *   já tinha e independente das outras metas (ponderada 6% + 7% = 13%, numérica 12% + 7% = 19%).
  */
 export function descontoEspecialistaPet(c: ClienteEspecialistaPet): DescontoEspecialistaPet {
   const bateuTotal = c.metaTotal > 0 && c.realizadoTotal >= c.metaTotal
@@ -40,7 +45,8 @@ export function descontoEspecialistaPet(c: ClienteEspecialistaPet): DescontoEspe
 
   const reaisFoco = c.realizadoFocoReais ?? 0
   const reaisSemFoco = c.realizadoReais - reaisFoco
-  const percentualFoco = bateuFoco ? faixa : 0
+  const comprouWild = (c.realizadoFocoWild ?? 0) > 0
+  const percentualFoco = (bateuFoco ? faixa : 0) + (comprouWild ? BONUS_WILD : 0)
   const valorFoco = (reaisFoco * percentualFoco) / 100
   const valorSemFoco = (reaisSemFoco * faixa) / 100
   return {
