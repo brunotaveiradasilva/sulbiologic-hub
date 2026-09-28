@@ -82,12 +82,28 @@ export function listarUsuarios(): Promise<UsuarioResumo[]> {
   return requisitar('/api/auth/usuarios')
 }
 
-/** representanteId é obrigatório (e só vale) quando o role é REPRESENTANTE. */
-export function criarUsuario(usuario: string, senha: string, role: Role, representanteId: string | null): Promise<void> {
-  if (MOCK) return mock.criarUsuario(usuario, role, representanteId)
-  return requisitar('/api/auth/usuarios', {
-    method: 'POST',
-    body: JSON.stringify({ usuario, senha, role, representanteId }),
+/** Perfil e dados da pessoa de um login. representanteId é obrigatório (e só vale) quando o role é REPRESENTANTE. */
+export interface DadosUsuario {
+  role: Role
+  representanteId: string | null
+  nome: string
+  sobrenome: string
+  email: string
+  /** AAAA-MM-DD, ou null se não informada. */
+  dataNascimento: string | null
+}
+
+export function criarUsuario(usuario: string, senha: string, dados: DadosUsuario): Promise<void> {
+  if (MOCK) return mock.criarUsuario(usuario, dados)
+  return requisitar('/api/auth/usuarios', { method: 'POST', body: JSON.stringify({ usuario, senha, ...dados }) })
+}
+
+/** novaSenha vazia mantém a senha atual. */
+export function atualizarUsuario(usuario: string, dados: DadosUsuario, novaSenha: string): Promise<UsuarioResumo> {
+  if (MOCK) return mock.atualizarUsuario(usuario, dados)
+  return requisitar(`/api/auth/usuarios/${encodeURIComponent(usuario)}`, {
+    method: 'PUT',
+    body: JSON.stringify({ ...dados, novaSenha }),
   })
 }
 

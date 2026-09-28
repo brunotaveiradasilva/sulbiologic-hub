@@ -70,7 +70,6 @@ export function PainelAlmoxarifado({ usuario, isAdmin, consultaMetas, avatar, ao
   })
 
   const [dialogoConta, setDialogoConta] = useState(false)
-  const [dialogoUsuarios, setDialogoUsuarios] = useState(false)
 
   const primeiraCarga = app.carregando && !app.materiais.length && !app.agendamentos.length
 
@@ -106,7 +105,7 @@ export function PainelAlmoxarifado({ usuario, isAdmin, consultaMetas, avatar, ao
     if (destino.aba === 'materiais') setSubabaMateriais(destino.subaba)
     else if (destino.aba === 'metas') setSubabaMetas(destino.subaba)
     else if (destino.aba === 'campanhas') setSubabaCampanhas(destino.subaba)
-    else setSubabaDados(destino.subaba)
+    else if (destino.aba === 'dados') setSubabaDados(destino.subaba)
     setAba(destino.aba)
   }
 
@@ -145,6 +144,8 @@ export function PainelAlmoxarifado({ usuario, isAdmin, consultaMetas, avatar, ao
           <PainelCampanhas subaba={subabaCampanhas} aoMudarSubaba={setSubabaCampanhas} isAdmin={isAdmin} />
         ) : aba === 'dados' ? (
           <PainelDados subaba={subabaDados} aoMudarSubaba={setSubabaDados} />
+        ) : aba === 'usuarios' ? (
+          <PainelUsuarios usuarioAtual={usuario} />
         ) : (
           <section className="view" role="tabpanel">
             <div className="view-head">
@@ -338,7 +339,7 @@ export function PainelAlmoxarifado({ usuario, isAdmin, consultaMetas, avatar, ao
         aoMudarSubabaCampanhas={setSubabaCampanhas}
         subabaDados={subabaDados}
         aoMudarSubabaDados={setSubabaDados}
-        aoAbrirUsuarios={() => setDialogoUsuarios(true)}
+        aoAbrirUsuarios={() => setAba('usuarios')}
         aoAbrirConta={() => setDialogoConta(true)}
         aoSair={aoSair}
       />
@@ -386,9 +387,6 @@ export function PainelAlmoxarifado({ usuario, isAdmin, consultaMetas, avatar, ao
         />
       ) : null}
 
-      {dialogoUsuarios ? (
-        <PainelUsuarios usuarioAtual={usuario} aoFechar={() => setDialogoUsuarios(false)} />
-      ) : null}
     </div>
   )
 }

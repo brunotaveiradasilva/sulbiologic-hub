@@ -48,3 +48,14 @@ export function IconeInicio() {
     </svg>
   )
 }
+
+export function IconeUsuarios() {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="9" cy="8" r="3.2" />
+      <path d="M3.5 19c.6-3.1 2.9-5 5.5-5s4.9 1.9 5.5 5" />
+      <path d="M15.5 5.2a3 3 0 0 1 0 5.6" />
+      <path d="M17.5 14.4c1.6.6 2.7 2.2 3 4.6" />
+    </svg>
+  )
+}

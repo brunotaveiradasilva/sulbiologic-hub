@@ -1,48 +1,35 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { criarUsuario, excluirUsuario, listarRepresentantes, listarUsuarios, ErroApi } from '../lib/api'
-import type { Representante, Role, UsuarioResumo } from '../types'
+import { useEffect, useState } from 'react'
+import { atualizarUsuario, criarUsuario, excluirUsuario, listarRepresentantes, listarUsuarios, ErroApi } from '../lib/api'
+import type { DadosUsuario } from '../lib/api'
+import { formatarData } from '../lib/datas'
+import { PERFIS } from '../lib/perfis'
+import { EstadoVazio } from './EstadoVazio'
+import { FormularioUsuario } from './FormularioUsuario'
+import type { Representante, UsuarioResumo } from '../types'
 
 interface Props {
   usuarioAtual: string
-  aoFechar: () => void
 }
 
-/** Perfis na ordem em que aparecem no formulário, com o que cada um pode fazer. */
-const PERFIS: { valor: Role; rotulo: string; descricao: string }[] = [
-  { valor: 'REPRESENTANTE', rotulo: 'Representante', descricao: 'Consulta só as próprias metas e campanhas.' },
-  { valor: 'SUPERVISOR', rotulo: 'Supervisor', descricao: 'Consulta as metas e campanhas de todos os representantes.' },
-  { valor: 'ADMIN', rotulo: 'Administrador', descricao: 'Gerencia tudo, inclusive os usuários.' },
-  { valor: 'USUARIO', rotulo: 'Almoxarifado', descricao: 'Só materiais e agendamentos.' },
-]
-
-function rotuloPerfil(u: UsuarioResumo): string {
-  const perfil = PERFIS.find((p) => p.valor === u.role)?.rotulo ?? u.role
-  if (u.role !== 'REPRESENTANTE') return perfil
-  return `${perfil} · ${u.representanteNome ?? 'representante excluído'}`
+function mensagemErro(e: unknown, padrao: string): string {
+  return e instanceof ErroApi ? e.message : padrao
 }
 
-/**
- * Diálogo próprio (não o <Modal> genérico) porque aqui tem várias ações independentes —
- * excluir cada linha, criar um novo — em vez de um formulário só com "confirmar".
- */
-export function PainelUsuarios({ usuarioAtual, aoFechar }: Props) {
-  const ref = useRef<HTMLDialogElement>(null)
+function nomeCompleto(u: UsuarioResumo): string {
+  return [u.nome, u.sobrenome].filter(Boolean).join(' ')
+}
 
+/** Página de Usuários (só admin): os logins com perfil e dados da pessoa, pra criar, editar e excluir. */
+export function PainelUsuarios({ usuarioAtual }: Props) {
   const [usuarios, setUsuarios] = useState<UsuarioResumo[]>([])
   const [representantes, setRepresentantes] = useState<Representante[]>([])
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState('')
-
-  const [novoUsuario, setNovoUsuario] = useState('')
-  const [novaSenha, setNovaSenha] = useState('')
-  const [novoPerfil, setNovoPerfil] = useState<Role>('REPRESENTANTE')
-  const [novoRepresentanteId, setNovoRepresentanteId] = useState('')
-  const [criando, setCriando] = useState(false)
-
-  useEffect(() => {
-    const dialog = ref.current
-    if (dialog && !dialog.open) dialog.showModal()
-  }, [])
+  const [busca, setBusca] = useState('')
+  const [formulario, setFormulario] = useState<{ aberto: boolean; usuario: UsuarioResumo | null }>({
+    aberto: false,
+    usuario: null,
+  })
 
   useEffect(() => {
     carregar()
@@ -57,155 +44,143 @@ export function PainelUsuarios({ usuarioAtual, aoFechar }: Props) {
     try {
       setUsuarios(await listarUsuarios())
     } catch (e) {
-      setErro(e instanceof ErroApi ? e.message : 'Não foi possível carregar os usuários.')
+      setErro(mensagemErro(e, 'Não foi possível carregar os usuários.'))
     } finally {
       setCarregando(false)
     }
   }
 
-  async function adicionar(e: FormEvent) {
-    e.preventDefault()
-    if (!novoUsuario.trim()) return setErro('Informe o nome do novo usuário.')
-    if (novaSenha.length < 4) return setErro('A senha precisa ter pelo menos 4 caracteres.')
-    if (novoPerfil === 'REPRESENTANTE' && !novoRepresentanteId) return setErro('Escolha o representante desse login.')
-
-    setErro('')
-    setCriando(true)
+  /** Erro aqui sobe pro formulário, que mostra a mensagem sem fechar. */
+  async function salvar(usuario: string, senha: string, dados: DadosUsuario) {
     try {
-      await criarUsuario(
-        novoUsuario.trim(),
-        novaSenha,
-        novoPerfil,
-        novoPerfil === 'REPRESENTANTE' ? novoRepresentanteId : null,
-      )
-      setNovoUsuario('')
-      setNovaSenha('')
-      setNovoRepresentanteId('')
-      await carregar()
+      if (formulario.usuario) await atualizarUsuario(formulario.usuario.usuario, dados, senha)
+      else await criarUsuario(usuario, senha, dados)
     } catch (e) {
-      setErro(e instanceof ErroApi ? e.message : 'Não foi possível criar o usuário.')
-    } finally {
-      setCriando(false)
+      throw new Error(mensagemErro(e, 'Não foi possível salvar o usuário.'))
     }
+    await carregar()
   }
 
-  async function remover(usuario: string) {
-    if (!window.confirm(`Excluir o login "${usuario}"? Essa pessoa não vai mais conseguir entrar.`)) return
+  async function remover(u: UsuarioResumo) {
+    const quem = nomeCompleto(u) || u.usuario
+    if (!window.confirm(`Excluir o login de ${quem}? Essa pessoa não vai mais conseguir entrar.`)) return
 
     setErro('')
     try {
-      await excluirUsuario(usuario)
+      await excluirUsuario(u.usuario)
       await carregar()
     } catch (e) {
-      setErro(e instanceof ErroApi ? e.message : 'Não foi possível excluir esse usuário.')
+      setErro(mensagemErro(e, 'Não foi possível excluir esse usuário.'))
     }
   }
 
   const admins = usuarios.filter((u) => u.role === 'ADMIN').length
+  const termo = busca.trim().toLowerCase()
+  const visiveis = usuarios.filter(
+    (u) =>
+      !termo ||
+      [u.usuario, nomeCompleto(u), u.email, u.representanteNome].some((t) => t?.toLowerCase().includes(termo)),
+  )
 
   return (
-    <dialog
-      ref={ref}
-      onCancel={(e) => {
-        e.preventDefault()
-        aoFechar()
-      }}
-    >
-      <div className="dlg-head">
-        <h3>Usuários</h3>
-        <button type="button" className="icon-btn" onClick={aoFechar} aria-label="Fechar">
-          &times;
+    <section className="view" role="tabpanel">
+      <div className="view-head">
+        <div>
+          <h2>Usuários</h2>
+          <p>Quem entra no sistema e o que cada um pode ver.</p>
+        </div>
+        <button className="btn btn-primary" onClick={() => setFormulario({ aberto: true, usuario: null })}>
+          + Novo usuário
         </button>
       </div>
 
-      <div className="dlg-body">
-        {carregando ? (
-          <p className="hint">Carregando…</p>
-        ) : (
-          <ul className="lista-usuarios">
-            {usuarios.map((u) => {
-              const ultimoAdmin = u.role === 'ADMIN' && admins <= 1
-              return (
-                <li key={u.usuario}>
-                  <span className="lista-usuarios-nome">
-                    <span>
-                      {u.usuario}
-                      {u.usuario === usuarioAtual ? <span className="hint"> (você)</span> : null}
-                    </span>
-                    <span className="hint">{rotuloPerfil(u)}</span>
-                  </span>
-                  <button
-                    type="button"
-                    className="btn btn-sm btn-ghost btn-danger"
-                    disabled={ultimoAdmin}
-                    title={ultimoAdmin ? 'Não dá para excluir o único administrador' : undefined}
-                    onClick={() => remover(u.usuario)}
-                  >
-                    Excluir
-                  </button>
-                </li>
-              )
-            })}
-          </ul>
-        )}
-
-        <form className="form-novo-usuario" onSubmit={adicionar}>
-          <div className="field">
-            <label htmlFor="nu-usuario">Novo usuário</label>
-            <input id="nu-usuario" autoComplete="off" value={novoUsuario} onChange={(e) => setNovoUsuario(e.target.value)} />
-          </div>
-          <div className="field">
-            <label htmlFor="nu-senha">Senha</label>
-            <input
-              id="nu-senha"
-              type="password"
-              autoComplete="new-password"
-              value={novaSenha}
-              onChange={(e) => setNovaSenha(e.target.value)}
-            />
-          </div>
-          <div className="field">
-            <label htmlFor="nu-perfil">Perfil</label>
-            <select id="nu-perfil" value={novoPerfil} onChange={(e) => setNovoPerfil(e.target.value as Role)}>
-              {PERFIS.map((p) => (
-                <option key={p.valor} value={p.valor}>
-                  {p.rotulo}
-                </option>
-              ))}
-            </select>
-          </div>
-          {novoPerfil === 'REPRESENTANTE' ? (
-            <div className="field">
-              <label htmlFor="nu-representante">Representante</label>
-              <select
-                id="nu-representante"
-                value={novoRepresentanteId}
-                onChange={(e) => setNovoRepresentanteId(e.target.value)}
-              >
-                <option value="">Escolha…</option>
-                {representantes.map((r) => (
-                  <option key={r.id} value={r.id}>
-                    {r.nome}
-                  </option>
-                ))}
-              </select>
-            </div>
-          ) : null}
-          <p className="hint">
-            {PERFIS.find((p) => p.valor === novoPerfil)?.descricao}
-          </p>
-          <button className="btn btn-primary btn-sm" type="submit" disabled={criando}>
-            {criando ? 'Criando…' : '+ Adicionar'}
+      {erro ? (
+        <div className="banner-erro" role="alert">
+          <span>{erro}</span>
+          <button className="btn" onClick={carregar}>
+            Tentar de novo
           </button>
-        </form>
+        </div>
+      ) : null}
+
+      <div className="toolbar">
+        <input
+          className="search"
+          type="search"
+          placeholder="Buscar por nome, usuário, e-mail ou representante…"
+          aria-label="Buscar usuários"
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
+        />
       </div>
 
-      <div className="dlg-foot">
-        {erro ? <span className="msg">{erro}</span> : null}
-        <button type="button" className="btn" onClick={aoFechar}>
-          Fechar
-        </button>
-      </div>
-    </dialog>
+      {carregando && !usuarios.length ? (
+        <EstadoVazio titulo="Carregando…" texto="Buscando os usuários no servidor." />
+      ) : (
+        <div className="table-wrap table-wrap-compacta">
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Perfil</th>
+                <th>E-mail</th>
+                <th>Nascimento</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              {visiveis.map((u) => {
+                const ultimoAdmin = u.role === 'ADMIN' && admins <= 1
+                return (
+                  <tr key={u.usuario}>
+                    <td className="cell-material">
+                      {nomeCompleto(u) || u.usuario}
+                      {u.usuario === usuarioAtual ? <span className="hint"> (você)</span> : null}
+                      <span className="usuario-login">{u.usuario}</span>
+                    </td>
+                    <td className="cell-obs">
+                      {PERFIS.find((p) => p.valor === u.role)?.rotulo ?? u.role}
+                      {u.role === 'REPRESENTANTE' ? (
+                        <span className="usuario-representante">{u.representanteNome ?? 'representante excluído'}</span>
+                      ) : null}
+                    </td>
+                    <td className="cell-obs">{u.email || '—'}</td>
+                    <td className="cell-obs">{u.dataNascimento ? formatarData(u.dataNascimento) : '—'}</td>
+                    <td className="actions-cell">
+                      <div className="row-actions">
+                        <button className="btn btn-sm btn-ghost" onClick={() => setFormulario({ aberto: true, usuario: u })}>
+                          Editar
+                        </button>
+                        <button
+                          className="btn btn-sm btn-ghost btn-danger"
+                          disabled={ultimoAdmin}
+                          title={ultimoAdmin ? 'Não dá para excluir o único administrador' : undefined}
+                          onClick={() => remover(u)}
+                        >
+                          Excluir
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+
+          {!visiveis.length ? (
+            <EstadoVazio titulo="Ninguém com esse termo" texto="Tente outro nome, usuário ou e-mail." />
+          ) : null}
+        </div>
+      )}
+
+      {formulario.aberto ? (
+        <FormularioUsuario
+          usuario={formulario.usuario}
+          representantes={representantes}
+          aoFechar={() => setFormulario({ aberto: false, usuario: null })}
+          aoSalvar={salvar}
+        />
+      ) : null}
+    </section>
   )
 }

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { IconeCampanhas, IconeDados, IconeMateriais, IconeMetas } from './IconesMenu'
+import { IconeCampanhas, IconeDados, IconeMateriais, IconeMetas, IconeUsuarios } from './IconesMenu'
 import {
   SUBABAS_CAMPANHAS,
   SUBABAS_DADOS,
@@ -18,6 +18,7 @@ export type Destino =
   | { aba: 'metas'; subaba: SubabaMetas }
   | { aba: 'campanhas'; subaba: SubabaCampanhas }
   | { aba: 'dados'; subaba: SubabaDados }
+  | { aba: 'usuarios' }
 
 interface Props {
   usuario: string
@@ -82,6 +83,13 @@ export function PaginaInicial({ usuario, isAdmin, consultaMetas, resumo, aoAbrir
             descricao: 'Relatórios e comparativos a partir das vendas importadas.',
             icone: <IconeDados />,
             atalhos: SUBABAS_DADOS.map((s) => ({ rotulo: s.rotulo, destino: { aba: 'dados', subaba: s.valor } })),
+          },
+          {
+            chave: 'usuarios',
+            titulo: 'Usuários',
+            descricao: 'Quem entra no sistema, com o perfil e os dados de cada um.',
+            icone: <IconeUsuarios />,
+            atalhos: [{ rotulo: 'Usuários', destino: { aba: 'usuarios' } }],
           },
         ] satisfies Cartao[])
       : []),

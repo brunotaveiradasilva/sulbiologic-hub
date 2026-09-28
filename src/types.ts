@@ -11,6 +11,12 @@ export interface UsuarioResumo {
   role: Role
   representanteId?: string | null
   representanteNome?: string | null
+  /** Dados da pessoa — opcionais (logins antigos não têm). */
+  nome?: string | null
+  sobrenome?: string | null
+  email?: string | null
+  /** AAAA-MM-DD */
+  dataNascimento?: string | null
 }
 
 /** Status guardado no agendamento. */
