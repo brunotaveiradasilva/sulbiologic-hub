@@ -1,10 +1,11 @@
 import { Fragment, useEffect, useRef, useState, type CSSProperties } from 'react'
 import { IconeCampanhas, IconeDados, IconeInicio, IconeMateriais, IconeMetas } from './IconesMenu'
-import { SUBABAS_METAS, type SubabaMetas } from './PainelMetas'
 import {
   SUBABAS_CAMPANHAS,
   SUBABAS_DADOS,
   SUBABAS_MATERIAIS,
+  subabasMetas,
+  type SubabaMetas,
   type SubabaCampanhas,
   type SubabaDados,
   type SubabaMateriais,
@@ -15,6 +16,7 @@ export type AbaPrincipal = 'inicio' | 'materiais' | 'metas' | 'campanhas' | 'dad
 interface Props {
   aba: AbaPrincipal
   isAdmin: boolean
+  consultaMetas: boolean
   usuario: string
   avatar: string | null
   aoMudarAba: (aba: AbaPrincipal) => void
@@ -35,6 +37,7 @@ interface Props {
 export function MenuLateral({
   aba,
   isAdmin,
+  consultaMetas,
   usuario,
   avatar,
   aoMudarAba,
@@ -88,13 +91,13 @@ export function MenuLateral({
         escolher: () => aoMudarSubabaMateriais(s.valor),
       })),
     },
-    ...(isAdmin
+    ...(consultaMetas
       ? [
           {
             aba: 'metas' as const,
             rotulo: 'Metas',
             icone: <IconeMetas />,
-            subitens: SUBABAS_METAS.map((s) => ({
+            subitens: subabasMetas(isAdmin).map((s) => ({
               ...s,
               ativo: subabaMetas === s.valor,
               escolher: () => aoMudarSubabaMetas(s.valor),
@@ -110,6 +113,10 @@ export function MenuLateral({
               escolher: () => aoMudarSubabaCampanhas(s.valor),
             })),
           },
+        ]
+      : []),
+    ...(isAdmin
+      ? [
           {
             aba: 'dados' as const,
             rotulo: 'Dados',

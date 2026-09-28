@@ -17,6 +17,7 @@ export default function App() {
     <PainelAlmoxarifado
       usuario={auth.usuario}
       isAdmin={auth.isAdmin}
+      consultaMetas={auth.consultaMetas}
       avatar={auth.avatar}
       aoSair={auth.sair}
       aoTrocarFoto={auth.trocarFoto}

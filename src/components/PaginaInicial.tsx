@@ -1,10 +1,11 @@
 import type { ReactNode } from 'react'
 import { IconeCampanhas, IconeDados, IconeMateriais, IconeMetas } from './IconesMenu'
-import { SUBABAS_METAS, type SubabaMetas } from './PainelMetas'
 import {
   SUBABAS_CAMPANHAS,
   SUBABAS_DADOS,
   SUBABAS_MATERIAIS,
+  subabasMetas,
+  type SubabaMetas,
   type SubabaCampanhas,
   type SubabaDados,
   type SubabaMateriais,
@@ -21,6 +22,7 @@ export type Destino =
 interface Props {
   usuario: string
   isAdmin: boolean
+  consultaMetas: boolean
   resumo: Resumo
   aoAbrir: (destino: Destino) => void
 }
@@ -40,7 +42,7 @@ function saudacao(hora = new Date().getHours()) {
 }
 
 /** Tela de entrada: um cartão por seção do menu lateral, com atalho direto pra cada subaba. */
-export function PaginaInicial({ usuario, isAdmin, resumo, aoAbrir }: Props) {
+export function PaginaInicial({ usuario, isAdmin, consultaMetas, resumo, aoAbrir }: Props) {
   const cartoes: Cartao[] = [
     {
       chave: 'materiais',
@@ -49,14 +51,16 @@ export function PaginaInicial({ usuario, isAdmin, resumo, aoAbrir }: Props) {
       icone: <IconeMateriais />,
       atalhos: SUBABAS_MATERIAIS.map((s) => ({ rotulo: s.rotulo, destino: { aba: 'materiais', subaba: s.valor } })),
     },
-    ...(isAdmin
+    ...(consultaMetas
       ? ([
           {
             chave: 'metas',
             titulo: 'Metas',
-            descricao: 'Fornecedores, representantes e as metas de cada um, com o acompanhamento do mês.',
+            descricao: isAdmin
+              ? 'Fornecedores, representantes e as metas de cada um, com o acompanhamento do mês.'
+              : 'As metas do mês e quanto já foi realizado.',
             icone: <IconeMetas />,
-            atalhos: SUBABAS_METAS.map((s) => ({ rotulo: s.rotulo, destino: { aba: 'metas', subaba: s.valor } })),
+            atalhos: subabasMetas(isAdmin).map((s) => ({ rotulo: s.rotulo, destino: { aba: 'metas', subaba: s.valor } })),
           },
           {
             chave: 'campanhas',
@@ -68,6 +72,10 @@ export function PaginaInicial({ usuario, isAdmin, resumo, aoAbrir }: Props) {
               destino: { aba: 'campanhas', subaba: s.valor },
             })),
           },
+        ] satisfies Cartao[])
+      : []),
+    ...(isAdmin
+      ? ([
           {
             chave: 'dados',
             titulo: 'Dados',

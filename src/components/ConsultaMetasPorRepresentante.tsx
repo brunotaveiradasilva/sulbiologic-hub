@@ -16,8 +16,8 @@ interface Props {
   totaisVendidos: TotalVendidoMensal[]
   mes: string
   aoMudarMes: (mes: string) => void
-  /** Muda a ordem das metas (a mesma pra todas as telas), trocando com a vizinha visível aqui. */
-  aoTrocarOrdem: (meta: Meta, vizinha: Meta) => void
+  /** Muda a ordem das metas (a mesma pra todas as telas), trocando com a vizinha visível aqui. Sem ele, só consulta. */
+  aoTrocarOrdem?: (meta: Meta, vizinha: Meta) => void
 }
 
 interface Linha {
@@ -189,7 +189,7 @@ interface PropsCard {
   titulo: string
   mes: string
   linhas: Linha[]
-  aoTrocarOrdem: (meta: Meta, vizinha: Meta) => void
+  aoTrocarOrdem?: (meta: Meta, vizinha: Meta) => void
 }
 
 /** As setas de ordem trocam com a vizinha dentro do card — cada card é de um fornecedor só. */
@@ -211,7 +211,7 @@ function CardMetas({ titulo, mes, linhas, aoTrocarOrdem }: PropsCard) {
                 <th className="num">Realizado</th>
                 <th className="num">Falta</th>
                 <th className="num">Progresso</th>
-                <th />
+                {aoTrocarOrdem ? <th /> : null}
               </tr>
             </thead>
             <tbody>
@@ -240,16 +240,18 @@ function CardMetas({ titulo, mes, linhas, aoTrocarOrdem }: PropsCard) {
                       </span>
                     </div>
                   </td>
-                  <td className="actions-cell">
-                    <div className="row-actions">
-                      <BotoesOrdemMeta
-                        meta={meta}
-                        anterior={linhas[i - 1]?.meta ?? null}
-                        proxima={linhas[i + 1]?.meta ?? null}
-                        aoTrocar={aoTrocarOrdem}
-                      />
-                    </div>
-                  </td>
+                  {aoTrocarOrdem ? (
+                    <td className="actions-cell">
+                      <div className="row-actions">
+                        <BotoesOrdemMeta
+                          meta={meta}
+                          anterior={linhas[i - 1]?.meta ?? null}
+                          proxima={linhas[i + 1]?.meta ?? null}
+                          aoTrocar={aoTrocarOrdem}
+                        />
+                      </div>
+                    </td>
+                  ) : null}
                 </tr>
               ))}
             </tbody>

@@ -12,6 +12,7 @@ import type {
   Status,
   TotalVendidoMensal,
   UnidadeMeta,
+  UsuarioResumo,
   VendasPeriodo,
 } from '../types'
 
@@ -34,7 +35,7 @@ function achar<T extends { id: string }>(lista: T[], id: string): T {
 }
 
 let avatar: string | null = null
-const usuarios = new Set(['admin'])
+let usuarios: UsuarioResumo[] = [{ usuario: 'admin', role: 'ADMIN' }]
 
 let materiais: Material[] = [
   { id: novoId('mat'), nome: 'Furadeira de impacto', codigo: 'FER-014', estoque: 3, obs: 'Maleta com brocas no armário 2.' },
@@ -124,21 +125,26 @@ const totaisVendidos: TotalVendidoMensal[] = [
   { id: novoId('tvm'), representanteId: representantes[1].id, mes: MES_ANTERIOR, total: 87311.9 },
 ]
 
+/** Entra com o perfil do login cadastrado (ADMIN se ele não existe). O mock não filtra os dados por representante. */
 export function login(usuario: string): Promise<{ token: string; usuario: string; role: Role; avatar: string | null }> {
-  return Promise.resolve({ token: 'mock-token', usuario: usuario.trim() || 'admin', role: 'ADMIN', avatar })
+  const nome = usuario.trim() || 'admin'
+  const role = usuarios.find((u) => u.usuario.toLowerCase() === nome.toLowerCase())?.role ?? 'ADMIN'
+  return Promise.resolve({ token: 'mock-token', usuario: nome, role, avatar })
 }
 
-export function listarUsuarios(): Promise<string[]> {
-  return Promise.resolve([...usuarios])
+export function listarUsuarios(): Promise<UsuarioResumo[]> {
+  return Promise.resolve(
+    usuarios.map((u) => ({ ...u, representanteNome: representantes.find((r) => r.id === u.representanteId)?.nome ?? null })),
+  )
 }
 
-export function criarUsuario(usuario: string): Promise<void> {
-  usuarios.add(usuario)
+export function criarUsuario(usuario: string, role: Role, representanteId: string | null): Promise<void> {
+  usuarios = [...usuarios, { usuario, role, representanteId: role === 'REPRESENTANTE' ? representanteId : null }]
   return Promise.resolve()
 }
 
 export function excluirUsuario(usuario: string): Promise<void> {
-  usuarios.delete(usuario)
+  usuarios = usuarios.filter((u) => u.usuario !== usuario)
   return Promise.resolve()
 }
 

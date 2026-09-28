@@ -52,6 +52,8 @@ export function useAuth() {
     role,
     avatar,
     isAdmin: role === 'ADMIN',
+    /** Enxerga Metas e Campanhas (supervisor e representante só consultam). */
+    consultaMetas: role === 'ADMIN' || role === 'SUPERVISOR' || role === 'REPRESENTANTE',
     logado: usuario !== null,
     entrando,
     erro,

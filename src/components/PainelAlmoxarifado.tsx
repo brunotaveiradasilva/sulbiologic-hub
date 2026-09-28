@@ -1,7 +1,13 @@
 import { useMemo, useState } from 'react'
 import { useAlmoxarifado } from '../hooks/useAlmoxarifado'
 import { calcularResumo, filtrarAgendamentos } from '../lib/regras'
-import { SUBABAS_MATERIAIS, type SubabaCampanhas, type SubabaDados, type SubabaMateriais } from '../lib/navegacao'
+import {
+  SUBABAS_MATERIAIS,
+  type SubabaCampanhas,
+  type SubabaDados,
+  type SubabaMateriais,
+  type SubabaMetas,
+} from '../lib/navegacao'
 import { PainelResumo } from './PainelResumo'
 import { EstadoVazio } from './EstadoVazio'
 import { TabelaAgendamentos } from './TabelaAgendamentos'
@@ -11,7 +17,7 @@ import { FormularioAgendamento } from './FormularioAgendamento'
 import { FormularioMaterial } from './FormularioMaterial'
 import { MinhaConta } from './MinhaConta'
 import { PainelUsuarios } from './PainelUsuarios'
-import { PainelMetas, type SubabaMetas } from './PainelMetas'
+import { PainelMetas } from './PainelMetas'
 import { PainelCampanhas } from './PainelCampanhas'
 import { PainelDados } from './PainelDados'
 import { MenuLateral, type AbaPrincipal } from './MenuLateral'
@@ -21,6 +27,8 @@ import type { Agendamento, Filtro, Material } from '../types'
 interface Props {
   usuario: string
   isAdmin: boolean
+  /** Supervisor e representante também veem Metas e Campanhas, só pra consultar. */
+  consultaMetas: boolean
   avatar: string | null
   aoSair: () => void
   aoTrocarFoto: (avatar: string | null) => Promise<void>
@@ -35,12 +43,13 @@ const FILTROS: { valor: Filtro; rotulo: string }[] = [
 ]
 
 /** Tudo que só existe depois do login: só monta (e só busca dados da API) quem já está autenticado. */
-export function PainelAlmoxarifado({ usuario, isAdmin, avatar, aoSair, aoTrocarFoto }: Props) {
+export function PainelAlmoxarifado({ usuario, isAdmin, consultaMetas, avatar, aoSair, aoTrocarFoto }: Props) {
   const app = useAlmoxarifado()
 
   const [aba, setAba] = useState<AbaPrincipal>('inicio')
   const [subabaMateriais, setSubabaMateriais] = useState<SubabaMateriais>('agendamentos')
-  const [subabaMetas, setSubabaMetas] = useState<SubabaMetas>('fornecedores')
+  // Os cadastros (fornecedores, representantes, metas) são só do admin: os outros começam na consulta.
+  const [subabaMetas, setSubabaMetas] = useState<SubabaMetas>(isAdmin ? 'fornecedores' : 'porRepresentante')
   const [subabaCampanhas, setSubabaCampanhas] = useState<SubabaCampanhas>('especialistaPet')
   const [subabaDados, setSubabaDados] = useState<SubabaDados>('comparativo')
   const [filtro, setFiltro] = useState<Filtro>('todos')
@@ -121,13 +130,19 @@ export function PainelAlmoxarifado({ usuario, isAdmin, avatar, aoSair, aoTrocarF
         ) : null}
 
         {aba === 'inicio' ? (
-          <PaginaInicial usuario={usuario} isAdmin={isAdmin} resumo={resumo} aoAbrir={abrirDestino} />
+          <PaginaInicial
+            usuario={usuario}
+            isAdmin={isAdmin}
+            consultaMetas={consultaMetas}
+            resumo={resumo}
+            aoAbrir={abrirDestino}
+          />
         ) : primeiraCarga ? (
           <EstadoVazio titulo="Carregando…" texto="Buscando os dados salvos no servidor." />
         ) : aba === 'metas' ? (
-          <PainelMetas subaba={subabaMetas} aoMudarSubaba={setSubabaMetas} />
+          <PainelMetas subaba={subabaMetas} aoMudarSubaba={setSubabaMetas} isAdmin={isAdmin} />
         ) : aba === 'campanhas' ? (
-          <PainelCampanhas subaba={subabaCampanhas} aoMudarSubaba={setSubabaCampanhas} />
+          <PainelCampanhas subaba={subabaCampanhas} aoMudarSubaba={setSubabaCampanhas} isAdmin={isAdmin} />
         ) : aba === 'dados' ? (
           <PainelDados subaba={subabaDados} aoMudarSubaba={setSubabaDados} />
         ) : (
@@ -311,6 +326,7 @@ export function PainelAlmoxarifado({ usuario, isAdmin, avatar, aoSair, aoTrocarF
       <MenuLateral
         aba={aba}
         isAdmin={isAdmin}
+        consultaMetas={consultaMetas}
         usuario={usuario}
         avatar={avatar}
         aoMudarAba={setAba}

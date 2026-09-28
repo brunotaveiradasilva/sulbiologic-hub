@@ -1,5 +1,17 @@
-/** Nível de acesso do login. ADMIN gerencia usuários, fornecedores, representantes e metas. */
-export type Role = 'ADMIN' | 'USUARIO'
+/**
+ * Nível de acesso do login. ADMIN gerencia tudo; SUPERVISOR consulta metas e campanhas de todos os
+ * representantes; REPRESENTANTE consulta só as dele; USUARIO só o almoxarifado. Supervisor e
+ * representante não editam nada — e quem filtra o que o representante enxerga é a API.
+ */
+export type Role = 'ADMIN' | 'SUPERVISOR' | 'REPRESENTANTE' | 'USUARIO'
+
+/** Um login como a tela de Usuários mostra. representanteNome só vem pra REPRESENTANTE. */
+export interface UsuarioResumo {
+  usuario: string
+  role: Role
+  representanteId?: string | null
+  representanteNome?: string | null
+}
 
 /** Status guardado no agendamento. */
 export type Status = 'agendado' | 'retirado' | 'devolvido'

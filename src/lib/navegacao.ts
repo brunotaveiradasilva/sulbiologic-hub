@@ -6,6 +6,22 @@ export const SUBABAS_MATERIAIS: { valor: SubabaMateriais; rotulo: string }[] = [
   { valor: 'cadastro', rotulo: 'Cadastro' },
 ]
 
+/** Subabas da área de Metas. */
+export type SubabaMetas = 'fornecedores' | 'representantes' | 'metas' | 'porRepresentante' | 'porFornecedor'
+
+const SUBABAS_METAS: { valor: SubabaMetas; rotulo: string }[] = [
+  { valor: 'fornecedores', rotulo: 'Fornecedores' },
+  { valor: 'representantes', rotulo: 'Representantes' },
+  { valor: 'metas', rotulo: 'Metas' },
+  { valor: 'porRepresentante', rotulo: 'Meta Representante' },
+  { valor: 'porFornecedor', rotulo: 'Meta Fornecedor' },
+]
+
+/** Supervisor e representante só têm as telas de consulta — os cadastros são do admin. */
+export function subabasMetas(isAdmin: boolean) {
+  return isAdmin ? SUBABAS_METAS : SUBABAS_METAS.filter((s) => s.valor === 'porRepresentante' || s.valor === 'porFornecedor')
+}
+
 /** Subabas da área de Campanhas. */
 export type SubabaCampanhas = 'especialistaPet'
 
