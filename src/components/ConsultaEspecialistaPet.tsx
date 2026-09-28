@@ -33,9 +33,10 @@ function resumir(clientes: ClienteEspecialistaPet[]): Resumo {
 /**
  * Campanha Especialista Pet: metas por cliente vindas da planilha da PremieR (produto foco NATTU e
  * todos os SKUs, em kg) e o realizado da ADS, cliente a cliente — de todos os representantes ou só
- * de um, escolhido no filtro.
+ * de um, escolhido no filtro. Sem podeEditar (supervisor e representante), só consulta: sem importar
+ * planilha nem sincronizar.
  */
-export function ConsultaEspecialistaPet() {
+export function ConsultaEspecialistaPet({ podeEditar }: { podeEditar: boolean }) {
   const esp = useEspecialistaPet()
   const [mes, setMes] = useState(mesAtual)
   const [representante, setRepresentante] = useState(TODOS)
@@ -124,12 +125,20 @@ export function ConsultaEspecialistaPet() {
         </div>
         <SeletorMes id="ep-mes" mes={mes} mesesComDados={mesesComDados} aoMudar={mudarMes} />
         <div className="consulta-acoes">
-          <button className="btn" disabled={esp.ocupado !== null} onClick={() => entradaArquivo.current?.click()}>
-            {esp.ocupado === 'importando' ? 'Importando…' : 'Importar planilha'}
-          </button>
-          <button className="btn" disabled={esp.ocupado !== null || !doMes.length} onClick={() => esp.sincronizar(mes)}>
-            {esp.ocupado === 'sincronizando' ? 'Sincronizando…' : 'Sincronizar com a ADS'}
-          </button>
+          {podeEditar ? (
+            <>
+              <button className="btn" disabled={esp.ocupado !== null} onClick={() => entradaArquivo.current?.click()}>
+                {esp.ocupado === 'importando' ? 'Importando…' : 'Importar planilha'}
+              </button>
+              <button
+                className="btn"
+                disabled={esp.ocupado !== null || !doMes.length}
+                onClick={() => esp.sincronizar(mes)}
+              >
+                {esp.ocupado === 'sincronizando' ? 'Sincronizando…' : 'Sincronizar com a ADS'}
+              </button>
+            </>
+          ) : null}
           <button
             className="btn"
             disabled={gerandoPdf || !visiveis.length}
@@ -151,14 +160,21 @@ export function ConsultaEspecialistaPet() {
       {esp.carregando && !esp.clientes.length ? (
         <EstadoVazio titulo="Carregando…" texto="Buscando os dados salvos no servidor." />
       ) : !doMes.length ? (
-        <EstadoVazio
-          titulo={`Nenhuma planilha em ${rotuloMesCurto(mes)}`}
-          texto="Importe a planilha de acompanhamento da PremieR (a aba CNPJ, com as metas por cliente). O realizado vem da ADS."
-        >
-          <button className="btn btn-primary" disabled={esp.ocupado !== null} onClick={() => entradaArquivo.current?.click()}>
-            Importar planilha
-          </button>
-        </EstadoVazio>
+        podeEditar ? (
+          <EstadoVazio
+            titulo={`Nenhuma planilha em ${rotuloMesCurto(mes)}`}
+            texto="Importe a planilha de acompanhamento da PremieR (a aba CNPJ, com as metas por cliente). O realizado vem da ADS."
+          >
+            <button className="btn btn-primary" disabled={esp.ocupado !== null} onClick={() => entradaArquivo.current?.click()}>
+              Importar planilha
+            </button>
+          </EstadoVazio>
+        ) : (
+          <EstadoVazio
+            titulo={`Nenhum cliente em ${rotuloMesCurto(mes)}`}
+            texto="Ainda não há clientes da campanha nesse mês pra você."
+          />
+        )
       ) : (
         <>
           <div className="stats meta-kpis meta-kpis-largo">

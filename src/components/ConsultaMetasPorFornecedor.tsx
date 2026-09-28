@@ -15,8 +15,9 @@ interface Props {
   metasRepresentante: MetaRepresentante[]
   mes: string
   aoMudarMes: (mes: string) => void
-  aoSalvar: (mv: MetaRepresentanteEntrada, id?: string | null) => Promise<MetaRepresentante>
-  aoCopiarMes: (de: string, para: string, fornecedorId?: string) => Promise<number>
+  /** Sem aoSalvar e aoCopiarMes, a tela é só de consulta (supervisor e representante). */
+  aoSalvar?: (mv: MetaRepresentanteEntrada, id?: string | null) => Promise<MetaRepresentante>
+  aoCopiarMes?: (de: string, para: string, fornecedorId?: string) => Promise<number>
 }
 
 /**
@@ -120,7 +121,7 @@ export function ConsultaMetasPorFornecedor({
         <p className="hint consulta-info">
           {rotuloMesCurto(mes)} já fechou — as metas desse mês ficam só pra consulta.
         </p>
-      ) : paraCopiar > 0 && representantesDoFornecedor.length ? (
+      ) : aoCopiarMes && paraCopiar > 0 && representantesDoFornecedor.length ? (
         <div className="consulta-acoes">
           <button className="btn" onClick={() => setCopiando(true)}>
             Copiar metas de {rotuloMes(mesAnterior)}
@@ -165,7 +166,7 @@ export function ConsultaMetasPorFornecedor({
                     representanteNome={v.nome}
                     meta={meta}
                     atribuicao={atribuicaoDe(v.id, meta.id)}
-                    aoEditar={fechado ? null : () => setEditando({ representante: v, meta })}
+                    aoEditar={fechado || !aoSalvar ? null : () => setEditando({ representante: v, meta })}
                   />
                 )),
               )}
@@ -174,7 +175,7 @@ export function ConsultaMetasPorFornecedor({
         </div>
       )}
 
-      {editando ? (
+      {editando && aoSalvar ? (
         <DialogoEditarMetaRepresentante
           representante={editando.representante}
           meta={editando.meta}
@@ -185,7 +186,7 @@ export function ConsultaMetasPorFornecedor({
         />
       ) : null}
 
-      {copiando && fornecedor ? (
+      {copiando && fornecedor && aoCopiarMes ? (
         <DialogoCopiarMetasMes
           de={mesAnterior}
           para={mes}

@@ -4,10 +4,12 @@ import { SUBABAS_CAMPANHAS, type SubabaCampanhas } from '../lib/navegacao'
 interface Props {
   subaba: SubabaCampanhas
   aoMudarSubaba: (subaba: SubabaCampanhas) => void
+  /** Só o admin importa e sincroniza; supervisor e representante só consultam. */
+  isAdmin: boolean
 }
 
 /** Campanhas comerciais. A navegação entre as subabas fica no menu lateral; as abas daqui só aparecem no celular. */
-export function PainelCampanhas({ subaba, aoMudarSubaba }: Props) {
+export function PainelCampanhas({ subaba, aoMudarSubaba, isAdmin }: Props) {
   return (
     <section className="view" role="tabpanel">
       <div className="view-head">
@@ -24,7 +26,7 @@ export function PainelCampanhas({ subaba, aoMudarSubaba }: Props) {
         ))}
       </nav>
 
-      {subaba === 'especialistaPet' ? <ConsultaEspecialistaPet /> : null}
+      {subaba === 'especialistaPet' ? <ConsultaEspecialistaPet podeEditar={isAdmin} /> : null}
     </section>
   )
 }

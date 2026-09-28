@@ -12,6 +12,7 @@ import type {
   TotalVendidoMensal,
   UnidadeMeta,
   Representante,
+  UsuarioResumo,
   VendasPeriodo,
 } from '../types'
 
@@ -76,14 +77,18 @@ export function login(
   return requisitar('/api/auth/login', { method: 'POST', body: JSON.stringify({ usuario, senha }) })
 }
 
-export function listarUsuarios(): Promise<string[]> {
+export function listarUsuarios(): Promise<UsuarioResumo[]> {
   if (MOCK) return mock.listarUsuarios()
   return requisitar('/api/auth/usuarios')
 }
 
-export function criarUsuario(usuario: string, senha: string): Promise<void> {
-  if (MOCK) return mock.criarUsuario(usuario)
-  return requisitar('/api/auth/usuarios', { method: 'POST', body: JSON.stringify({ usuario, senha }) })
+/** representanteId é obrigatório (e só vale) quando o role é REPRESENTANTE. */
+export function criarUsuario(usuario: string, senha: string, role: Role, representanteId: string | null): Promise<void> {
+  if (MOCK) return mock.criarUsuario(usuario, role, representanteId)
+  return requisitar('/api/auth/usuarios', {
+    method: 'POST',
+    body: JSON.stringify({ usuario, senha, role, representanteId }),
+  })
 }
 
 export function excluirUsuario(usuario: string): Promise<void> {

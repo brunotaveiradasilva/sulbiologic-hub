@@ -11,26 +11,22 @@ import { FormularioMeta } from './FormularioMeta'
 import { ConsultaMetasPorRepresentante } from './ConsultaMetasPorRepresentante'
 import { ConsultaMetasPorFornecedor } from './ConsultaMetasPorFornecedor'
 import { mesAtual } from '../lib/mes'
+import { subabasMetas, type SubabaMetas } from '../lib/navegacao'
 import type { Fornecedor, Meta, Representante } from '../types'
 
-export type SubabaMetas = 'fornecedores' | 'representantes' | 'metas' | 'porRepresentante' | 'porFornecedor'
-
-export const SUBABAS_METAS: { valor: SubabaMetas; rotulo: string }[] = [
-  { valor: 'fornecedores', rotulo: 'Fornecedores' },
-  { valor: 'representantes', rotulo: 'Representantes' },
-  { valor: 'metas', rotulo: 'Metas' },
-  { valor: 'porRepresentante', rotulo: 'Meta Representante' },
-  { valor: 'porFornecedor', rotulo: 'Meta Fornecedor' },
-]
-
-/** Cadastros de apoio às metas — fornecedores, representantes e metas — e telas de consulta. Só monta para quem é admin. */
+/**
+ * Cadastros de apoio às metas — fornecedores, representantes e metas — e telas de consulta. Sem
+ * isAdmin, só as consultas e sem editar nada (supervisor e representante; a API já manda pro
+ * representante só o que é dele).
+ */
 interface Props {
   subaba: SubabaMetas
   aoMudarSubaba: (subaba: SubabaMetas) => void
+  isAdmin: boolean
 }
 
 /** A navegação entre as subabas fica no menu lateral; as abas daqui só aparecem no celular, onde o menu vira só ícones. */
-export function PainelMetas({ subaba, aoMudarSubaba }: Props) {
+export function PainelMetas({ subaba, aoMudarSubaba, isAdmin }: Props) {
   const metas = useMetas()
   // Mês escolhido nas telas de consulta — o mesmo nas duas, e é o que o "Sincronizar com a ADS" recalcula.
   const [mes, setMes] = useState(mesAtual)
@@ -87,7 +83,7 @@ export function PainelMetas({ subaba, aoMudarSubaba }: Props) {
             + Cadastrar meta
           </button>
         ) : null}
-        {subaba === 'porRepresentante' || subaba === 'porFornecedor' ? (
+        {isAdmin && (subaba === 'porRepresentante' || subaba === 'porFornecedor') ? (
           <button className="btn" disabled={metas.sincronizando} onClick={() => metas.sincronizarComAds(mes)}>
             {metas.sincronizando ? 'Sincronizando…' : 'Sincronizar com a ADS'}
           </button>
@@ -104,7 +100,7 @@ export function PainelMetas({ subaba, aoMudarSubaba }: Props) {
       ) : null}
 
       <nav className="tabs tabs-so-celular" role="tablist">
-        {SUBABAS_METAS.map((s) => (
+        {subabasMetas(isAdmin).map((s) => (
           <button key={s.valor} role="tab" aria-selected={subaba === s.valor} onClick={() => aoMudarSubaba(s.valor)}>
             {s.rotulo}
           </button>
@@ -211,18 +207,23 @@ export function PainelMetas({ subaba, aoMudarSubaba }: Props) {
           totaisVendidos={metas.totaisVendidos}
           mes={mes}
           aoMudarMes={setMes}
-          aoTrocarOrdem={(meta, vizinha) => metas.trocarOrdemMetas(meta.id, vizinha.id)}
+          aoTrocarOrdem={isAdmin ? (meta, vizinha) => metas.trocarOrdemMetas(meta.id, vizinha.id) : undefined}
         />
       ) : (
         <ConsultaMetasPorFornecedor
-          fornecedores={metas.fornecedores}
+          fornecedores={
+            isAdmin
+              ? metas.fornecedores
+              : // Representante só recebe ele mesmo da API: mostra só os fornecedores pra quem ele trabalha.
+                metas.fornecedores.filter((f) => metas.representantes.some((r) => r.fornecedores.some((rf) => rf.id === f.id)))
+          }
           representantes={metas.representantes}
           metas={metas.metas}
           metasRepresentante={metas.metasRepresentante}
           mes={mes}
           aoMudarMes={setMes}
-          aoSalvar={metas.salvarMetaRepresentante}
-          aoCopiarMes={metas.copiarMetasDoMes}
+          aoSalvar={isAdmin ? metas.salvarMetaRepresentante : undefined}
+          aoCopiarMes={isAdmin ? metas.copiarMetasDoMes : undefined}
         />
       )}
 
