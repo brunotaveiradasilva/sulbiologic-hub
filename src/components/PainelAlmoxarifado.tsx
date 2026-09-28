@@ -15,6 +15,7 @@ import { PainelMetas, type SubabaMetas } from './PainelMetas'
 import { PainelCampanhas } from './PainelCampanhas'
 import { PainelDados } from './PainelDados'
 import { MenuLateral, type AbaPrincipal } from './MenuLateral'
+import { PaginaInicial, type Destino } from './PaginaInicial'
 import type { Agendamento, Filtro, Material } from '../types'
 
 interface Props {
@@ -37,7 +38,7 @@ const FILTROS: { valor: Filtro; rotulo: string }[] = [
 export function PainelAlmoxarifado({ usuario, isAdmin, avatar, aoSair, aoTrocarFoto }: Props) {
   const app = useAlmoxarifado()
 
-  const [aba, setAba] = useState<AbaPrincipal>('materiais')
+  const [aba, setAba] = useState<AbaPrincipal>('inicio')
   const [subabaMateriais, setSubabaMateriais] = useState<SubabaMateriais>('agendamentos')
   const [subabaMetas, setSubabaMetas] = useState<SubabaMetas>('fornecedores')
   const [subabaCampanhas, setSubabaCampanhas] = useState<SubabaCampanhas>('especialistaPet')
@@ -91,6 +92,15 @@ export function PainelAlmoxarifado({ usuario, isAdmin, avatar, aoSair, aoTrocarF
     setDialogoAgendamento({ aberto: true, agendamento, materialInicial })
   }
 
+  /** Atalho da página inicial: vai pra seção já na subaba escolhida. */
+  function abrirDestino(destino: Destino) {
+    if (destino.aba === 'materiais') setSubabaMateriais(destino.subaba)
+    else if (destino.aba === 'metas') setSubabaMetas(destino.subaba)
+    else if (destino.aba === 'campanhas') setSubabaCampanhas(destino.subaba)
+    else setSubabaDados(destino.subaba)
+    setAba(destino.aba)
+  }
+
   function excluirMaterial(material: Material) {
     const usos = app.agendamentos.filter((a) => a.materialId === material.id).length
     const aviso = `Este material tem ${usos} agendamento(s). Excluir mesmo assim? Os agendamentos continuam na lista, sem o material.`
@@ -110,7 +120,9 @@ export function PainelAlmoxarifado({ usuario, isAdmin, avatar, aoSair, aoTrocarF
           </div>
         ) : null}
 
-        {primeiraCarga ? (
+        {aba === 'inicio' ? (
+          <PaginaInicial usuario={usuario} isAdmin={isAdmin} resumo={resumo} aoAbrir={abrirDestino} />
+        ) : primeiraCarga ? (
           <EstadoVazio titulo="Carregando…" texto="Buscando os dados salvos no servidor." />
         ) : aba === 'metas' ? (
           <PainelMetas subaba={subabaMetas} aoMudarSubaba={setSubabaMetas} />

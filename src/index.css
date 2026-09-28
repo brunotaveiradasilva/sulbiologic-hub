@@ -269,6 +269,28 @@
   .view-head h2 { font-size: 40px; font-weight: 600; letter-spacing: -.025em; line-height: 1.1; }
   .view-head p { margin: 10px 0 0; color: var(--ink-2); font-size: 17px; line-height: 1.5; max-width: 60ch; }
 
+  /* ---------- página inicial ---------- */
+  .inicio-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+  .inicio-card {
+    background: var(--surface-2); border-radius: var(--radius-lg);
+    padding: 22px; display: flex; flex-direction: column; gap: 10px;
+  }
+  .inicio-card-topo {
+    display: flex; align-items: center; gap: 12px; align-self: flex-start;
+    background: none; border: 0; padding: 0; cursor: pointer; text-align: left;
+  }
+  .inicio-card-topo h3 { font-size: 21px; font-weight: 600; letter-spacing: -.02em; }
+  .inicio-card-topo:hover h3 { color: var(--accent); }
+  .inicio-card-icone {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 38px; height: 38px; border-radius: var(--radius);
+    background: var(--accent-soft); color: var(--accent);
+  }
+  .inicio-card-descricao { margin: 0; color: var(--ink-2); font-size: 14.5px; line-height: 1.5; flex: 1; }
+  .inicio-card-alerta { margin: 0; font-size: 13px; font-weight: 500; color: var(--st-retirado); }
+  .inicio-card-alerta.is-atrasado { color: var(--st-atrasado); }
+  .inicio-card-atalhos { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+
   /* ---------- buttons ---------- */
   .btn {
     display: inline-flex; align-items: center; gap: 6px;
