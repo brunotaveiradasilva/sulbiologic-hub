@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useRef, useState, type CSSProperties } from 'react'
-import { IconeCampanhas, IconeDados, IconeMateriais, IconeMetas } from './IconesMenu'
+import { IconeCampanhas, IconeDados, IconeInicio, IconeMateriais, IconeMetas } from './IconesMenu'
 import { SUBABAS_METAS, type SubabaMetas } from './PainelMetas'
 import {
   SUBABAS_CAMPANHAS,
@@ -10,7 +10,7 @@ import {
   type SubabaMateriais,
 } from '../lib/navegacao'
 
-export type AbaPrincipal = 'materiais' | 'metas' | 'campanhas' | 'dados'
+export type AbaPrincipal = 'inicio' | 'materiais' | 'metas' | 'campanhas' | 'dados'
 
 interface Props {
   aba: AbaPrincipal
@@ -51,8 +51,10 @@ export function MenuLateral({
   aoSair,
 }: Props) {
   const [aberto, setAberto] = useState(false)
-  // Subitens da seção atual escondidos — clicar de novo na seção que já está aberta recolhe.
-  const [recolhida, setRecolhida] = useState(false)
+  // Seção cujos subitens foram escondidos — clicar de novo na seção que já está aberta recolhe.
+  // Guarda qual seção (não um booleano) pra que ir pra outra, pelo menu ou pela página inicial, já abra.
+  const [recolhidaEm, setRecolhidaEm] = useState<AbaPrincipal | null>(null)
+  const recolhida = recolhidaEm === aba
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -67,14 +69,15 @@ export function MenuLateral({
   /** Na seção atual, abre/recolhe os subitens; em outra, vai pra ela já aberta. */
   function clicarSecao(destino: AbaPrincipal) {
     if (destino === aba) {
-      setRecolhida((r) => !r)
+      setRecolhidaEm((r) => (r === aba ? null : aba))
       return
     }
-    setRecolhida(false)
+    setRecolhidaEm(null)
     aoMudarAba(destino)
   }
 
   const secoes = [
+    { aba: 'inicio' as const, rotulo: 'Início', icone: <IconeInicio />, subitens: [] },
     {
       aba: 'materiais' as const,
       rotulo: 'Materiais',
@@ -129,43 +132,48 @@ export function MenuLateral({
         {secoes.map((secao) => {
           const ativa = aba === secao.aba
           const aberta = ativa && !recolhida
+          const temSubitens = secao.subitens.length > 0
           return (
             <Fragment key={secao.aba}>
               <button
                 type="button"
                 className={`menu-lateral-item${ativa ? ' is-ativo' : ''}`}
                 aria-current={ativa ? 'page' : undefined}
-                aria-expanded={ativa ? aberta : undefined}
+                aria-expanded={ativa && temSubitens ? aberta : undefined}
                 onClick={() => clicarSecao(secao.aba)}
               >
                 {secao.icone}
                 <span>{secao.rotulo}</span>
-                <span className={`menu-lateral-seta${aberta ? ' is-aberta' : ''}`} aria-hidden="true">
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                    <path d="M4.5 3L7.5 6L4.5 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </span>
+                {temSubitens ? (
+                  <span className={`menu-lateral-seta${aberta ? ' is-aberta' : ''}`} aria-hidden="true">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                      <path d="M4.5 3L7.5 6L4.5 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </span>
+                ) : null}
               </button>
 
               {/* Sempre montado (fechado fica inert) pra dar pra animar também o fechar. */}
-              <div className={`menu-lateral-sanfona${aberta ? ' is-aberta' : ''}`} inert={!aberta}>
-                <div className="menu-lateral-sanfona-conteudo">
-                  <div className="menu-lateral-subitens">
-                    {secao.subitens.map((s, i) => (
-                      <button
-                        key={s.valor}
-                        type="button"
-                        className={`menu-lateral-subitem${s.ativo ? ' is-ativo' : ''}`}
-                        style={{ '--i': i } as CSSProperties}
-                        aria-current={s.ativo ? 'page' : undefined}
-                        onClick={s.escolher}
-                      >
-                        {s.rotulo}
-                      </button>
-                    ))}
+              {temSubitens ? (
+                <div className={`menu-lateral-sanfona${aberta ? ' is-aberta' : ''}`} inert={!aberta}>
+                  <div className="menu-lateral-sanfona-conteudo">
+                    <div className="menu-lateral-subitens">
+                      {secao.subitens.map((s, i) => (
+                        <button
+                          key={s.valor}
+                          type="button"
+                          className={`menu-lateral-subitem${s.ativo ? ' is-ativo' : ''}`}
+                          style={{ '--i': i } as CSSProperties}
+                          aria-current={s.ativo ? 'page' : undefined}
+                          onClick={s.escolher}
+                        >
+                          {s.rotulo}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
+              ) : null}
             </Fragment>
           )
         })}
