@@ -23,10 +23,11 @@ export function subabasMetas(isAdmin: boolean) {
 }
 
 /** Subabas da área de Campanhas. */
-export type SubabaCampanhas = 'especialistaPet'
+export type SubabaCampanhas = 'especialistaPet' | 'wellpet'
 
 export const SUBABAS_CAMPANHAS: { valor: SubabaCampanhas; rotulo: string }[] = [
   { valor: 'especialistaPet', rotulo: 'Especialista Pet' },
+  { valor: 'wellpet', rotulo: 'Positivação Wellpet' },
 ]
 
 /** Subabas da área de Dados. */

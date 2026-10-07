@@ -562,6 +562,19 @@
   .ep-desconto-total { font-weight: 600; }
   .ep-progresso { display: flex; flex-direction: column; gap: 6px; }
   .ep-progresso-valores { font-variant-numeric: tabular-nums; }
+  /* ---------- campanha Wellpet ---------- */
+  .wp-pct { font-size: .5em; font-weight: 500; color: var(--ink-3); }
+  .wp-filtros-lista { margin-top: 24px; }
+  .chip.wp-positivou { --c: var(--st-devolvido); font-size: 14px; }
+  .chip.wp-falta { --c: var(--st-atrasado); font-size: 14px; }
+  .wp-link {
+    background: none; border: 0; padding: 0; font: inherit; color: var(--accent);
+    cursor: pointer; text-align: left;
+  }
+  .wp-link:hover { text-decoration: underline; }
+  .wp-vazio { padding: 0 20px 20px; color: var(--ink-2); }
+  .tabela-wellpet td { vertical-align: top; }
+  .tabela-wellpet .meta-progress-cell { min-width: 140px; }
 
   /* Meta em kg: quanto o realizado deu em R$, mais discreto embaixo do nome. */
   .meta-em-reais { display: block; margin-top: 2px; font-size: 13px; font-weight: 400; color: var(--ink-3); }

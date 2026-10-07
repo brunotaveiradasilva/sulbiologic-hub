@@ -147,6 +147,36 @@ export interface ClienteEspecialistaPet {
   realizadoFocoWild: number
 }
 
+/**
+ * Um cliente da campanha de positivação Wellpet num mês: da carteira de um representante (comprou com
+ * ele nos 12 meses antes) e sem nenhuma compra de Wellpet desde o lançamento (set/2025). A lista é
+ * montada a partir da ADS; o Wellpet comprado no mês vem da sincronização.
+ */
+export interface ClienteCampanhaWellpet {
+  id: string
+  /** Mês da campanha, "2026-10". */
+  mes: string
+  /** Id do cliente na ADS. */
+  codigoCliente: string
+  nome: string
+  cnpjCpf: string
+  /** Segmento na ADS, ex.: "VETERINARIOS". */
+  segmento: string
+  /** Código do representante na ADS ("003"). */
+  representanteCodigoAds: string
+  /** Nome do representante como vem da ADS — o da última compra do cliente. */
+  representante: string
+  /** "2026-09-10": última compra com esse representante antes da campanha. */
+  ultimaCompra: string | null
+  /** Wellpet no mês da campanha (venda menos devolução). */
+  wellpetReais: number
+  wellpetUnidades: number
+  /** "2026-10-03"; null enquanto não positivou. */
+  primeiraCompraWellpet: string | null
+  /** Comprou Wellpet no mês (saldo em R$ acima de zero). */
+  positivado: boolean
+}
+
 export interface Dados {
   materiais: Material[]
   agendamentos: Agendamento[]

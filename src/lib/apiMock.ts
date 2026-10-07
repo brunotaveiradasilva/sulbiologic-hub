@@ -3,6 +3,7 @@ import { mesAtual, mesFechado, somarMeses } from './mes'
 import type { DadosUsuario } from './api'
 import type {
   Agendamento,
+  ClienteCampanhaWellpet,
   ClienteEspecialistaPet,
   Fornecedor,
   Material,
@@ -534,6 +535,81 @@ const progressoEspecialistaPet = new Map<string, number>()
 
 export function progressoSincronizacaoEspecialistaPet(mes: string): Promise<number | null> {
   return Promise.resolve(progressoEspecialistaPet.get(mes) ?? null)
+}
+
+let campanhaWellpet: ClienteCampanhaWellpet[] = []
+const progressoWellpet = new Map<string, number>()
+
+export function listarCampanhaWellpet(): Promise<ClienteCampanhaWellpet[]> {
+  return Promise.resolve(campanhaWellpet)
+}
+
+/** Sobe o progresso do mês até 99% em uns segundos, como a busca página a página na ADS de verdade. */
+function demorarComProgresso<T>(mes: string, resultado: () => T): Promise<T> {
+  progressoWellpet.set(mes, 0)
+  return new Promise((ok) => {
+    const passo = setInterval(() => {
+      const atual = progressoWellpet.get(mes) ?? 0
+      if (atual >= 99) {
+        clearInterval(passo)
+        progressoWellpet.delete(mes)
+        ok(resultado())
+      } else {
+        progressoWellpet.set(mes, Math.min(99, atual + 11))
+      }
+    }, 400)
+  })
+}
+
+/** Sem ADS no mock: inventa a carteira sem Wellpet de três representantes. */
+export function montarCampanhaWellpet(mes: string): Promise<ClienteCampanhaWellpet[]> {
+  const representantes = [
+    ['003', 'MARYE MOTA ZIRBES'],
+    ['007', 'ANDRESSA LIMA'],
+    ['012', 'ISABELLA ROCHA'],
+  ]
+  const segmentos = ['VETERINARIOS', 'PET SHOP', 'AGROPECUARIA']
+  const novos = Array.from({ length: 42 }, (_, i): ClienteCampanhaWellpet => {
+    const [codigo, nome] = representantes[i % representantes.length]
+    return {
+      id: novoId('wel'),
+      mes,
+      codigoCliente: String(6000 + i * 7),
+      nome: `CLIENTE EXEMPLO ${i + 1}`,
+      cnpjCpf: String(10000000000000 + i * 1234567),
+      segmento: segmentos[i % segmentos.length],
+      representanteCodigoAds: codigo,
+      representante: nome,
+      ultimaCompra: `${somarMeses(mes, -1 - (i % 5))}-${String(1 + (i % 27)).padStart(2, '0')}`,
+      wellpetReais: 0,
+      wellpetUnidades: 0,
+      primeiraCompraWellpet: null,
+      positivado: false,
+    }
+  })
+  campanhaWellpet = [...campanhaWellpet.filter((c) => c.mes !== mes), ...novos]
+  return demorarComProgresso(mes, () => novos)
+}
+
+/** Uns 40% da lista compram Wellpet no mês. */
+export function sincronizarCampanhaWellpet(mes: string): Promise<ClienteCampanhaWellpet[]> {
+  campanhaWellpet = campanhaWellpet.map((c) => {
+    if (c.mes !== mes) return c
+    const comprou = sorteioFixo(c.codigoCliente + mes) < 0.4
+    const unidades = comprou ? 1 + Math.floor(sorteioFixo(c.nome) * 6) : 0
+    return {
+      ...c,
+      wellpetUnidades: unidades,
+      wellpetReais: unidades * 89.9,
+      primeiraCompraWellpet: comprou ? `${mes}-${String(1 + Math.floor(sorteioFixo(c.id) * 5)).padStart(2, '0')}` : null,
+      positivado: comprou,
+    }
+  })
+  return demorarComProgresso(mes, () => campanhaWellpet.filter((c) => c.mes === mes))
+}
+
+export function progressoCampanhaWellpet(mes: string): Promise<number | null> {
+  return Promise.resolve(progressoWellpet.get(mes) ?? null)
 }
 
 /** Número entre 0 e 1 sempre igual pro mesmo texto — o mock devolve o mesmo resultado pro mesmo período. */
