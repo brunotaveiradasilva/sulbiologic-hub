@@ -1,10 +1,12 @@
 import { useMemo, useRef, useState, type ChangeEvent } from 'react'
 import { CarregandoTelaInteira } from './CarregandoTelaInteira'
+import { DialogoImportarEspecialistaPet } from './DialogoImportarEspecialistaPet'
 import { EstadoVazio } from './EstadoVazio'
 import { SeletorMes } from './SeletorMes'
 import { useEspecialistaPet } from '../hooks/useEspecialistaPet'
 import { descontoEspecialistaPet, lerPlanilhaEspecialistaPet, mesDoNomeDaPlanilha } from '../lib/especialistaPet'
-import { mesAtual, rotuloMes, rotuloMesCurto } from '../lib/mes'
+import type { LinhaPlanilhaEspecialistaPet } from '../lib/api'
+import { mesAtual, rotuloMesCurto } from '../lib/mes'
 import { exportarPdfEspecialistaPet } from '../lib/pdfEspecialistaPet'
 import { formatarValorMeta } from '../lib/unidadeMeta'
 import type { ClienteEspecialistaPet } from '../types'
@@ -42,6 +44,12 @@ export function ConsultaEspecialistaPet({ podeEditar }: { podeEditar: boolean })
   const [representante, setRepresentante] = useState(TODOS)
   const [gerandoPdf, setGerandoPdf] = useState(false)
   const entradaArquivo = useRef<HTMLInputElement>(null)
+  // Planilha já lida, esperando a escolha do mês no diálogo.
+  const [importando, setImportando] = useState<{
+    nomeArquivo: string
+    linhas: LinhaPlanilhaEspecialistaPet[]
+    mesDoArquivo: string | null
+  } | null>(null)
 
   const doMes = useMemo(() => esp.clientes.filter((c) => c.mes === mes), [esp.clientes, mes])
   const mesesComDados = useMemo(() => [...new Set(esp.clientes.map((c) => c.mes))], [esp.clientes])
@@ -68,15 +76,14 @@ export function ConsultaEspecialistaPet({ podeEditar }: { podeEditar: boolean })
       esp.setErro(erro instanceof Error ? erro.message : 'Não deu pra ler essa planilha.')
       return
     }
-    const destino = mesDoNomeDaPlanilha(arquivo.name) ?? mes
-    const jaTem = esp.clientes.some((c) => c.mes === destino)
-    const aviso =
-      `Importar ${linhas.length} clientes para ${rotuloMes(destino)}?` +
-      (jaTem ? '\n\nOs clientes já importados desse mês serão substituídos pelos da planilha.' : '')
-    if (!window.confirm(aviso)) return
+    setImportando({ nomeArquivo: arquivo.name, linhas, mesDoArquivo: mesDoNomeDaPlanilha(arquivo.name) })
+  }
+
+  async function importar(destino: string) {
+    if (!importando) return
     setMes(destino)
     setRepresentante(TODOS)
-    await esp.importar(destino, linhas)
+    await esp.importar(destino, importando.linhas)
   }
 
   /** Do representante escolhido, ou de todos — um por página. */
@@ -283,6 +290,18 @@ export function ConsultaEspecialistaPet({ podeEditar }: { podeEditar: boolean })
 
       {esp.ocupado === 'sincronizando' ? (
         <CarregandoTelaInteira texto="Buscando as vendas do mês na ADS…" progresso={esp.progresso} />
+      ) : null}
+
+      {importando ? (
+        <DialogoImportarEspecialistaPet
+          nomeArquivo={importando.nomeArquivo}
+          quantidadeClientes={importando.linhas.length}
+          mesSugerido={importando.mesDoArquivo ?? mes}
+          mesDoArquivo={importando.mesDoArquivo}
+          mesesComDados={mesesComDados}
+          aoFechar={() => setImportando(null)}
+          aoImportar={importar}
+        />
       ) : null}
     </div>
   )
