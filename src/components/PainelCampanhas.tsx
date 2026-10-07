@@ -1,3 +1,4 @@
+import { ConsultaCampanhaWellpet } from './ConsultaCampanhaWellpet'
 import { ConsultaEspecialistaPet } from './ConsultaEspecialistaPet'
 import { SUBABAS_CAMPANHAS, type SubabaCampanhas } from '../lib/navegacao'
 
@@ -27,6 +28,7 @@ export function PainelCampanhas({ subaba, aoMudarSubaba, isAdmin }: Props) {
       </nav>
 
       {subaba === 'especialistaPet' ? <ConsultaEspecialistaPet podeEditar={isAdmin} /> : null}
+      {subaba === 'wellpet' ? <ConsultaCampanhaWellpet podeEditar={isAdmin} /> : null}
     </section>
   )
 }

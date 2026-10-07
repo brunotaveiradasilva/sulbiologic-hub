@@ -2,6 +2,7 @@ import { sessaoSalva } from './auth'
 import * as mock from './apiMock'
 import type {
   Agendamento,
+  ClienteCampanhaWellpet,
   ClienteEspecialistaPet,
   Fornecedor,
   Material,
@@ -366,5 +367,33 @@ export async function progressoSincronizacaoEspecialistaPet(mes: string): Promis
   const r: { percentual: number | null } = await requisitar(
     `/api/especialista-pet/sincronizar/progresso?mes=${encodeURIComponent(mes)}`,
   )
+  return r.percentual
+}
+
+/** Clientes da campanha Wellpet, de todos os meses — a tela filtra pelo mês escolhido. */
+export function listarCampanhaWellpet(): Promise<ClienteCampanhaWellpet[]> {
+  if (MOCK) return mock.listarCampanhaWellpet()
+  return requisitar('/api/campanha-wellpet')
+}
+
+/**
+ * Monta (ou refaz) a lista do mês da campanha a partir do histórico da ADS — demora, varre mais de um
+ * ano de vendas. A positivação vem zerada: chame sincronizarCampanhaWellpet depois.
+ */
+export function montarCampanhaWellpet(mes: string): Promise<ClienteCampanhaWellpet[]> {
+  if (MOCK) return mock.montarCampanhaWellpet(mes)
+  return requisitar(`/api/campanha-wellpet/montar?mes=${encodeURIComponent(mes)}`, { method: 'POST' })
+}
+
+/** Busca agora na ADS quem da lista já comprou Wellpet no mês (o mês atual também roda sozinho todo dia). */
+export function sincronizarCampanhaWellpet(mes: string): Promise<ClienteCampanhaWellpet[]> {
+  if (MOCK) return mock.sincronizarCampanhaWellpet(mes)
+  return requisitar(`/api/campanha-wellpet/sincronizar?mes=${encodeURIComponent(mes)}`, { method: 'POST' })
+}
+
+/** Quanto (0 a 100) já foi da montagem ou sincronização em andamento do mês; null se nada está rodando. */
+export async function progressoCampanhaWellpet(mes: string): Promise<number | null> {
+  if (MOCK) return mock.progressoCampanhaWellpet(mes)
+  const r: { percentual: number | null } = await requisitar(`/api/campanha-wellpet/progresso?mes=${encodeURIComponent(mes)}`)
   return r.percentual
 }
