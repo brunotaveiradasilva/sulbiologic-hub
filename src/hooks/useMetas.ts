@@ -176,6 +176,19 @@ export function useMetas() {
     })
   }, [metas])
 
+  const ocultarMeta = useCallback((id: string, oculta: boolean) => {
+    setErro(null)
+    const anterior = metas
+    setMetas((atual) => atual.map((m) => (m.id === id ? { ...m, oculta } : m)))
+    api
+      .ocultarMeta(id, oculta)
+      .then((atualizada) => setMetas((atual) => atual.map((m) => (m.id === id ? atualizada : m))))
+      .catch((e) => {
+        setErro(mensagemErro(e))
+        setMetas(anterior)
+      })
+  }, [metas])
+
   /**
    * Troca duas metas de lugar na ordem e grava a ordem nova na API. Recebe a vizinha em vez de uma
    * direção porque cada tela mostra uma parte da lista (ex: só os fornecedores do representante) —
@@ -284,6 +297,7 @@ export function useMetas() {
     removerRepresentante,
     salvarMeta,
     removerMeta,
+    ocultarMeta,
     trocarOrdemMetas,
     salvarMetaRepresentante,
     removerMetaRepresentante,

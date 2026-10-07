@@ -103,9 +103,9 @@ let representantes: Representante[] = [
 ]
 
 let metas: Meta[] = [
-  { id: novoId('met'), nome: 'Vacina V10', fornecedor: fornecedores[0], unidade: 'UNIDADE', codigoAdsDivisao: '', cnpjAdsFornecedor: '', produtosExcluidos: '', produtosIncluidos: '', ordem: 0, descricao: null, diaInicio: null, diaFim: null },
-  { id: novoId('met'), nome: 'Faturamento trimestral', fornecedor: fornecedores[1], unidade: 'REAL', codigoAdsDivisao: '', cnpjAdsFornecedor: '', produtosExcluidos: '', produtosIncluidos: '', ordem: 1, descricao: null, diaInicio: null, diaFim: null },
-  { id: novoId('met'), nome: 'Ração Premium', fornecedor: fornecedores[0], unidade: 'KG', codigoAdsDivisao: '', cnpjAdsFornecedor: '', produtosExcluidos: '', produtosIncluidos: '', ordem: 2, descricao: null, diaInicio: null, diaFim: null },
+  { id: novoId('met'), nome: 'Vacina V10', fornecedor: fornecedores[0], unidade: 'UNIDADE', codigoAdsDivisao: '', cnpjAdsFornecedor: '', produtosExcluidos: '', produtosIncluidos: '', ordem: 0, descricao: null, diaInicio: null, diaFim: null, oculta: false },
+  { id: novoId('met'), nome: 'Faturamento trimestral', fornecedor: fornecedores[1], unidade: 'REAL', codigoAdsDivisao: '', cnpjAdsFornecedor: '', produtosExcluidos: '', produtosIncluidos: '', ordem: 1, descricao: null, diaInicio: null, diaFim: null, oculta: false },
+  { id: novoId('met'), nome: 'Ração Premium', fornecedor: fornecedores[0], unidade: 'KG', codigoAdsDivisao: '', cnpjAdsFornecedor: '', produtosExcluidos: '', produtosIncluidos: '', ordem: 2, descricao: null, diaInicio: null, diaFim: null, oculta: false },
 ]
 
 // Mês atual e o anterior, pra dar pra testar o filtro de mês e o "copiar do mês anterior".
@@ -322,6 +322,7 @@ export function criarMeta(meta: MetaEntradaMock): Promise<Meta> {
     diaInicio: meta.diaInicio,
     diaFim: meta.diaFim,
     ordem: metas.length,
+    oculta: false,
     fornecedor: achar(fornecedores, meta.fornecedorId),
   }
   metas = [...metas, novo]
@@ -341,6 +342,7 @@ export function atualizarMeta(id: string, meta: MetaEntradaMock): Promise<Meta> 
     diaInicio: meta.diaInicio,
     diaFim: meta.diaFim,
     ordem: metas.find((m) => m.id === id)?.ordem ?? null,
+    oculta: metas.find((m) => m.id === id)?.oculta ?? false,
     fornecedor: achar(fornecedores, meta.fornecedorId),
   }
   metas = metas.map((m) => (m.id === id ? atualizado : m))
@@ -350,6 +352,11 @@ export function atualizarMeta(id: string, meta: MetaEntradaMock): Promise<Meta> 
 export function excluirMeta(id: string): Promise<void> {
   metas = metas.filter((m) => m.id !== id)
   return Promise.resolve()
+}
+
+export function ocultarMeta(id: string, oculta: boolean): Promise<Meta> {
+  metas = metas.map((m) => (m.id === id ? { ...m, oculta } : m))
+  return Promise.resolve(achar(metas, id))
 }
 
 /** Mesma regra da API: as da lista na ordem dela, as que faltarem no fim. */
