@@ -252,6 +252,12 @@ export function excluirMeta(id: string): Promise<void> {
   return requisitar(`/api/metas/${id}`, { method: 'DELETE' })
 }
 
+/** Oculta (ou volta a mostrar) uma meta sem excluir: o histórico dela continua salvo. */
+export function ocultarMeta(id: string, oculta: boolean): Promise<Meta> {
+  if (MOCK) return mock.ocultarMeta(id, oculta)
+  return requisitar(`/api/metas/${id}/oculta`, { method: 'PUT', body: JSON.stringify({ oculta }) })
+}
+
 /** Grava a ordem das metas na tela (ids na ordem desejada). Devolve todas as metas já ordenadas. */
 export function ordenarMetas(ids: string[]): Promise<Meta[]> {
   if (MOCK) return mock.ordenarMetas(ids)

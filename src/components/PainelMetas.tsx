@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useMetas } from '../hooks/useMetas'
 import { CarregandoTelaInteira } from './CarregandoTelaInteira'
 import { EstadoVazio } from './EstadoVazio'
@@ -11,6 +11,7 @@ import { FormularioMeta } from './FormularioMeta'
 import { ConsultaMetasPorRepresentante } from './ConsultaMetasPorRepresentante'
 import { ConsultaMetasPorFornecedor } from './ConsultaMetasPorFornecedor'
 import { mesAtual } from '../lib/mes'
+import { metasDoMes } from '../lib/metaOculta'
 import { subabasMetas, type SubabaMetas } from '../lib/navegacao'
 import type { Fornecedor, Meta, Representante } from '../types'
 
@@ -30,6 +31,14 @@ export function PainelMetas({ subaba, aoMudarSubaba, isAdmin }: Props) {
   const metas = useMetas()
   // Mês escolhido nas telas de consulta — o mesmo nas duas, e é o que o "Sincronizar com a ADS" recalcula.
   const [mes, setMes] = useState(mesAtual)
+  // Na aba Metas as ocultas ficam escondidas até marcar "Mostrar metas ocultas".
+  const [verOcultas, setVerOcultas] = useState(false)
+  const quantasOcultas = metas.metas.filter((m) => m.oculta).length
+  const metasNaLista = verOcultas ? metas.metas : metas.metas.filter((m) => !m.oculta)
+  const metasNaConsulta = useMemo(
+    () => metasDoMes(metas.metas, metas.metasRepresentante, mes),
+    [metas.metas, metas.metasRepresentante, mes],
+  )
 
   const [dialogoFornecedor, setDialogoFornecedor] = useState<{ aberto: boolean; fornecedor: Fornecedor | null }>({
     aberto: false,
@@ -168,8 +177,16 @@ export function PainelMetas({ subaba, aoMudarSubaba, isAdmin }: Props) {
           {metas.metas.length > 1 ? (
             <p className="hint consulta-info">
               Use ↑ e ↓ pra mudar a ordem (dá também direto em Meta Representante): é nessa ordem que as metas aparecem
-              em Meta Representante e Meta Fornecedor.
+              em Meta Representante e Meta Fornecedor. Meta que não vale mais dá pra ocultar em vez de excluir: ela some
+              das consultas dos meses em que não tem valor, mas continua nos meses em que valeu.
             </p>
+          ) : null}
+
+          {quantasOcultas ? (
+            <label className="metas-ocultas-check">
+              <input type="checkbox" checked={verOcultas} onChange={(e) => setVerOcultas(e.target.checked)} />
+              Mostrar metas ocultas ({quantasOcultas})
+            </label>
           ) : null}
 
           <div className="table-wrap table-wrap-compacta">
@@ -183,9 +200,10 @@ export function PainelMetas({ subaba, aoMudarSubaba, isAdmin }: Props) {
                 </tr>
               </thead>
               <TabelaMetas
-                metas={metas.metas}
+                metas={metasNaLista}
                 aoEditar={(meta) => setDialogoMeta({ aberto: true, meta })}
                 aoExcluir={excluirMeta}
+                aoOcultar={(meta, oculta) => metas.ocultarMeta(meta.id, oculta)}
                 aoTrocarOrdem={(meta, vizinha) => metas.trocarOrdemMetas(meta.id, vizinha.id)}
               />
             </table>
@@ -202,7 +220,7 @@ export function PainelMetas({ subaba, aoMudarSubaba, isAdmin }: Props) {
       ) : subaba === 'porRepresentante' ? (
         <ConsultaMetasPorRepresentante
           representantes={metas.representantes}
-          metas={metas.metas}
+          metas={metasNaConsulta}
           metasRepresentante={metas.metasRepresentante}
           totaisVendidos={metas.totaisVendidos}
           mes={mes}
@@ -218,7 +236,7 @@ export function PainelMetas({ subaba, aoMudarSubaba, isAdmin }: Props) {
                 metas.fornecedores.filter((f) => metas.representantes.some((r) => r.fornecedores.some((rf) => rf.id === f.id)))
           }
           representantes={metas.representantes}
-          metas={metas.metas}
+          metas={metasNaConsulta}
           metasRepresentante={metas.metasRepresentante}
           mes={mes}
           aoMudarMes={setMes}

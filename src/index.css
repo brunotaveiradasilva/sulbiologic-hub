@@ -587,6 +587,10 @@
   .periodo-meta { display: flex; align-items: center; gap: 8px; margin-top: 4px; font-size: 14px; color: var(--ink-2); }
   .field .periodo-meta input { width: 76px; }
 
+  /* Meta oculta na aba Metas: apagada e com a etiqueta "Oculta", mas os botões continuam normais. */
+  .meta-oculta-etiqueta { background: var(--surface-2); color: var(--ink-3); }
+  .linha-meta-oculta td:not(.actions-cell) { opacity: .55; }
+
   /* Tela inteira bloqueada enquanto sincroniza com a ADS, pra ninguém mexer no meio. */
   .carregando-tela {
     position: fixed; inset: 0; z-index: 1000;
@@ -632,10 +636,10 @@
   .comparativo.is-carregando .meta-kpis, .comparativo.is-carregando .meta-card { opacity: .55; }
   .comparativo-intervalo .comparativo-intervalo-datas { display: flex; align-items: center; gap: 8px; color: var(--ink-3); font-size: 13px; }
   .comparativo-intervalo input[type="date"] { font-size: 15px; padding: 10px 11px; min-width: 0; }
-  .comparativo-check {
+  .comparativo-check, .metas-ocultas-check {
     display: flex; align-items: center; gap: 8px; margin: 0 0 24px; font-size: 14px; color: var(--ink-2); cursor: pointer;
   }
-  .comparativo-check input { width: 16px; height: 16px; margin: 0; accent-color: var(--accent); }
+  .comparativo-check input, .metas-ocultas-check input { width: 16px; height: 16px; margin: 0; accent-color: var(--accent); }
   .comparativo-metrica { margin: 8px 0 18px; }
   .comparativo-metrica .filters button { padding: 10px 18px; font-size: 14px; }
   .comparativo-aviso { margin: 12px 0 0; font-size: 13px; }

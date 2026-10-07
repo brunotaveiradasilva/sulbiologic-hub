@@ -72,6 +72,8 @@ export function ConsultaMetasPorFornecedor({
       mv.mes === mesAnterior &&
       mv.valorMeta > 0 &&
       mv.meta.fornecedor.id === fornecedorId &&
+      // Meta oculta a API não copia: só conta as que aparecem nesta tela.
+      metasDoFornecedor.some((m) => m.id === mv.meta.id) &&
       !atribuicaoDe(mv.representante.id, mv.meta.id)?.valorMeta,
   ).length
 

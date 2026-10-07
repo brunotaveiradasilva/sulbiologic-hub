@@ -94,6 +94,11 @@ export interface Meta {
    */
   diaInicio: number | null
   diaFim: number | null
+  /**
+   * Meta guardada só pelo histórico (ex.: uma que valeu só em setembro): nas consultas só aparece nos meses
+   * em que tem valor de meta, e não é copiada pro mês seguinte.
+   */
+  oculta: boolean
 }
 
 /** O valor de uma meta atribuído a um representante num mês: quanto ele precisa bater e quanto já bateu. */
