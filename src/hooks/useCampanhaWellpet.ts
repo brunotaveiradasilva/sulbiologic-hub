@@ -38,30 +38,28 @@ export function useCampanhaWellpet() {
   }, [])
 
   /**
-   * Roda uma chamada demorada na ADS perguntando a cada segundo quanto já foi. Falha na pergunta não
-   * importa, só deixa a barra parada. Devolve false se a chamada falhou.
+   * Busca na ADS quem da lista comprou Wellpet no mês (leva menos de um minuto), perguntando a cada
+   * segundo quanto já foi. Falha na pergunta não importa, só deixa a barra parada.
    */
-  const comProgresso = useCallback(
-    async (mes: string, etapa: 'montando' | 'sincronizando', chamada: () => Promise<ClienteCampanhaWellpet[]>) => {
+  const sincronizar = useCallback(
+    async (mes: string) => {
       setErro(null)
-      setOcupado(etapa)
+      setOcupado('sincronizando')
       setProgresso(0)
       let emAndamento = true
       const acompanhar = setInterval(async () => {
         try {
-          const p = await api.progressoCampanhaWellpet(mes)
+          const { percentual } = await api.progressoCampanhaWellpet(mes)
           // Resposta que chega depois de terminar não traz a barra de volta.
-          if (p !== null && emAndamento) setProgresso((atual) => Math.max(atual ?? 0, p))
+          if (percentual !== null && emAndamento) setProgresso((atual) => Math.max(atual ?? 0, percentual))
         } catch {
           // ignora
         }
       }, 1000)
       try {
-        substituirMes(mes, await chamada())
-        return true
+        substituirMes(mes, await api.sincronizarCampanhaWellpet(mes))
       } catch (e) {
         setErro(mensagemErro(e))
-        return false
       } finally {
         emAndamento = false
         clearInterval(acompanhar)
@@ -72,17 +70,44 @@ export function useCampanhaWellpet() {
     [substituirMes],
   )
 
-  const sincronizar = useCallback(
-    (mes: string) => comProgresso(mes, 'sincronizando', () => api.sincronizarCampanhaWellpet(mes)),
-    [comProgresso],
-  )
-
-  /** Monta a lista do mês a partir do histórico da ADS e já busca quem positivou. */
+  /**
+   * Monta a lista do mês a partir do histórico da ADS e já busca quem positivou. A montagem leva minutos
+   * e roda no servidor: o pedido só a inicia, e daqui a tela pergunta o progresso até ela terminar.
+   */
   const montar = useCallback(
     async (mes: string) => {
-      if (await comProgresso(mes, 'montando', () => api.montarCampanhaWellpet(mes))) await sincronizar(mes)
+      setErro(null)
+      setOcupado('montando')
+      setProgresso(0)
+      let terminouSemErro = false
+      try {
+        await api.montarCampanhaWellpet(mes)
+        for (;;) {
+          await new Promise((ok) => setTimeout(ok, 2000))
+          let p: api.ProgressoCampanhaWellpet
+          try {
+            p = await api.progressoCampanhaWellpet(mes)
+          } catch {
+            continue // falha passageira na pergunta: tenta de novo no próximo ciclo
+          }
+          if (p.percentual !== null) {
+            setProgresso((atual) => Math.max(atual ?? 0, p.percentual ?? 0))
+            continue
+          }
+          if (p.erro) throw new ErroApi(p.erro)
+          break
+        }
+        substituirMes(mes, (await api.listarCampanhaWellpet()).filter((c) => c.mes === mes))
+        terminouSemErro = true
+      } catch (e) {
+        setErro(mensagemErro(e))
+      } finally {
+        setOcupado(null)
+        setProgresso(null)
+      }
+      if (terminouSemErro) await sincronizar(mes)
     },
-    [comProgresso, sincronizar],
+    [substituirMes, sincronizar],
   )
 
   return { clientes, carregando, ocupado, progresso, erro, tentarNovamente: carregar, montar, sincronizar }

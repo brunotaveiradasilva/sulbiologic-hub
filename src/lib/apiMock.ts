@@ -561,8 +561,11 @@ function demorarComProgresso<T>(mes: string, resultado: () => T): Promise<T> {
   })
 }
 
-/** Sem ADS no mock: inventa a carteira sem Wellpet de três representantes. */
-export function montarCampanhaWellpet(mes: string): Promise<ClienteCampanhaWellpet[]> {
+/**
+ * Sem ADS no mock: inventa a carteira sem Wellpet de três representantes. Como a API, volta na hora e
+ * a lista só aparece quando o progresso termina.
+ */
+export function montarCampanhaWellpet(mes: string): Promise<void> {
   const representantes = [
     ['003', 'MARYE MOTA ZIRBES'],
     ['007', 'ANDRESSA LIMA'],
@@ -587,8 +590,10 @@ export function montarCampanhaWellpet(mes: string): Promise<ClienteCampanhaWellp
       positivado: false,
     }
   })
-  campanhaWellpet = [...campanhaWellpet.filter((c) => c.mes !== mes), ...novos]
-  return demorarComProgresso(mes, () => novos)
+  demorarComProgresso(mes, () => {
+    campanhaWellpet = [...campanhaWellpet.filter((c) => c.mes !== mes), ...novos]
+  })
+  return Promise.resolve()
 }
 
 /** Uns 40% da lista compram Wellpet no mês. */
@@ -608,8 +613,8 @@ export function sincronizarCampanhaWellpet(mes: string): Promise<ClienteCampanha
   return demorarComProgresso(mes, () => campanhaWellpet.filter((c) => c.mes === mes))
 }
 
-export function progressoCampanhaWellpet(mes: string): Promise<number | null> {
-  return Promise.resolve(progressoWellpet.get(mes) ?? null)
+export function progressoCampanhaWellpet(mes: string): Promise<{ percentual: number | null; erro: string | null }> {
+  return Promise.resolve({ percentual: progressoWellpet.get(mes) ?? null, erro: null })
 }
 
 /** Número entre 0 e 1 sempre igual pro mesmo texto — o mock devolve o mesmo resultado pro mesmo período. */

@@ -377,12 +377,13 @@ export function listarCampanhaWellpet(): Promise<ClienteCampanhaWellpet[]> {
 }
 
 /**
- * Monta (ou refaz) a lista do mês da campanha a partir do histórico da ADS — demora, varre mais de um
- * ano de vendas. A positivação vem zerada: chame sincronizarCampanhaWellpet depois.
+ * Começa a montar (ou refazer) a lista do mês a partir do histórico da ADS e volta na hora: a montagem
+ * leva minutos e roda no servidor. Acompanhe com progressoCampanhaWellpet até o percentual virar null;
+ * sem erro, a lista está gravada com a positivação zerada — chame sincronizarCampanhaWellpet depois.
  */
-export function montarCampanhaWellpet(mes: string): Promise<ClienteCampanhaWellpet[]> {
+export async function montarCampanhaWellpet(mes: string): Promise<void> {
   if (MOCK) return mock.montarCampanhaWellpet(mes)
-  return requisitar(`/api/campanha-wellpet/montar?mes=${encodeURIComponent(mes)}`, { method: 'POST' })
+  await requisitar(`/api/campanha-wellpet/montar?mes=${encodeURIComponent(mes)}`, { method: 'POST' })
 }
 
 /** Busca agora na ADS quem da lista já comprou Wellpet no mês (o mês atual também roda sozinho todo dia). */
@@ -391,9 +392,14 @@ export function sincronizarCampanhaWellpet(mes: string): Promise<ClienteCampanha
   return requisitar(`/api/campanha-wellpet/sincronizar?mes=${encodeURIComponent(mes)}`, { method: 'POST' })
 }
 
-/** Quanto (0 a 100) já foi da montagem ou sincronização em andamento do mês; null se nada está rodando. */
-export async function progressoCampanhaWellpet(mes: string): Promise<number | null> {
+export interface ProgressoCampanhaWellpet {
+  /** 0 a 100 enquanto monta ou sincroniza; null se nada está rodando. */
+  percentual: number | null
+  /** Por que a última montagem do mês falhou; null se não falhou. */
+  erro: string | null
+}
+
+export function progressoCampanhaWellpet(mes: string): Promise<ProgressoCampanhaWellpet> {
   if (MOCK) return mock.progressoCampanhaWellpet(mes)
-  const r: { percentual: number | null } = await requisitar(`/api/campanha-wellpet/progresso?mes=${encodeURIComponent(mes)}`)
-  return r.percentual
+  return requisitar(`/api/campanha-wellpet/progresso?mes=${encodeURIComponent(mes)}`)
 }
