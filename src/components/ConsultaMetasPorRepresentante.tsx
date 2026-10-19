@@ -3,6 +3,7 @@ import { BotoesOrdemMeta } from './BotoesOrdemMeta'
 import { DetalhesMeta } from './DetalhesMeta'
 import { DialogoExportarPdf } from './DialogoExportarPdf'
 import { EstadoVazio } from './EstadoVazio'
+import { Realizado } from './Realizado'
 import { SeletorMes } from './SeletorMes'
 import { rotuloMesCurto } from '../lib/mes'
 import { formatarValorMeta } from '../lib/unidadeMeta'
@@ -225,7 +226,13 @@ function CardMetas({ titulo, mes, linhas, aoTrocarOrdem }: PropsCard) {
                     <DetalhesMeta meta={meta} />
                   </td>
                   <td className="num">{percentual === null ? '—' : formatarValorMeta(valorMeta, meta.unidade)}</td>
-                  <td className="num">{atribuicao ? formatarValorMeta(valorRealizado, meta.unidade) : '—'}</td>
+                  <td className="num">
+                    {atribuicao ? (
+                      <Realizado meta={meta} atribuicao={atribuicao} texto={formatarValorMeta(valorRealizado, meta.unidade)} />
+                    ) : (
+                      '—'
+                    )}
+                  </td>
                   <td className="num">{percentual === null ? '—' : formatarValorMeta(falta, meta.unidade)}</td>
                   <td className="num">
                     <div className="meta-progress-cell">

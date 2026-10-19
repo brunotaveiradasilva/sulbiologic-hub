@@ -1,4 +1,4 @@
-import { diasEntre, somarDias } from './datas'
+import { diasEntre, hoje, somarDias } from './datas'
 import { mesAtual, mesFechado, somarMeses } from './mes'
 import type { DadosUsuario } from './api'
 import type {
@@ -9,6 +9,7 @@ import type {
   Material,
   Meta,
   MetaRepresentante,
+  PositivacaoClientes,
   Representante,
   Role,
   Status,
@@ -668,4 +669,37 @@ export function buscarVendasPeriodo(
   total.clientes = Math.round(total.clientes * 0.9) // um cliente pode comprar de dois representantes
   const resultado: VendasPeriodo = { inicio, fim, representantes: linhas.sort((a, b) => b.valores.valor - a.valores.valor), total }
   return new Promise((ok) => setTimeout(() => ok(resultado), 700))
+}
+
+/** Inventa (de forma fixa) tantos clientes positivados quanto o realizado, cada um comprando em algumas semanas. */
+export function buscarPositivacaoClientes(metaRepresentanteId: string): Promise<PositivacaoClientes> {
+  const atribuicao = achar(metasRepresentante, metaRepresentanteId)
+  const [ano, mes] = atribuicao.mes.split('-').map(Number)
+  const ultimoDia = new Date(ano, mes, 0).getDate()
+  const dia = (d: number) => `${atribuicao.mes}-${String(d).padStart(2, '0')}`
+  const semanas = [1, 2, 3, 4].map((numero) => ({
+    numero,
+    inicio: dia(1 + 7 * (numero - 1)),
+    fim: dia(numero === 4 ? ultimoDia : 7 * numero),
+  }))
+  const quantos = Math.round(atribuicao.valorRealizado)
+  const clientes = Array.from({ length: quantos + (quantos ? 1 : 0) }, (_, i) => {
+    const semente = `${metaRepresentanteId}:${i}`
+    const positivado = i < quantos
+    const porSemana = [0, 1, 2, 3].map((s) =>
+      positivado && semanas[s].inicio <= hoje() && sorteioFixo(`${semente}:${s}`) < 0.45 ? Math.round(150 + sorteioFixo(`${semente}v${s}`) * 2400) : 0,
+    )
+    if (positivado && !porSemana.some((v) => v > 0)) porSemana[Math.floor(sorteioFixo(semente) * 4)] = 380
+    // O último comprou e devolveu tudo: aparece, mas não conta.
+    if (!positivado) porSemana.splice(0, 4, 320, 0, -320, 0)
+    return {
+      codigo: String(1000 + i),
+      nome: `CLIENTE EXEMPLO ${i + 1} LTDA`,
+      semanas: porSemana,
+      total: porSemana.reduce((a, b) => a + b, 0),
+      positivado,
+    }
+  })
+  clientes.sort((a, b) => Number(b.positivado) - Number(a.positivado) || b.total - a.total)
+  return new Promise((ok) => setTimeout(() => ok({ semanas, clientes }), 400))
 }
