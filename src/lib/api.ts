@@ -8,6 +8,7 @@ import type {
   Material,
   Meta,
   MetaRepresentante,
+  PositivacaoClientes,
   Role,
   Status,
   TotalVendidoMensal,
@@ -285,6 +286,12 @@ export function listarMetasRepresentante(): Promise<MetaRepresentante[]> {
 export function listarTotaisVendidos(): Promise<TotalVendidoMensal[]> {
   if (MOCK) return mock.listarTotaisVendidos()
   return requisitar('/api/metas-representante/totais-vendidos')
+}
+
+/** Numa meta CLIENTES, quem o representante positivou e quanto em cada semana do mês — vem da ADS na hora. */
+export function buscarPositivacaoClientes(metaRepresentanteId: string): Promise<PositivacaoClientes> {
+  if (MOCK) return mock.buscarPositivacaoClientes(metaRepresentanteId)
+  return requisitar(`/api/metas-representante/${encodeURIComponent(metaRepresentanteId)}/clientes`)
 }
 
 /** Força agora o recálculo do realizado de um mês a partir do histórico de vendas da ADS (o mês atual também roda sozinho todo dia). */

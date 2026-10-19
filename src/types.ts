@@ -115,6 +115,25 @@ export interface MetaRepresentante {
   realizadoEmReais: number | null
 }
 
+/**
+ * Detalhe de uma meta CLIENTES (positivação) de um representante num mês: quem comprou e quanto em
+ * cada uma das quatro semanas (1–7, 8–14, 15–21, 22 ao fim). A API calcula na hora, direto da ADS.
+ */
+export interface PositivacaoClientes {
+  semanas: { numero: number; /** AAAA-MM-DD */ inicio: string; /** AAAA-MM-DD */ fim: string }[]
+  /** Positivados primeiro, do maior valor pro menor; depois quem comprou e devolveu tudo. */
+  clientes: {
+    codigo: string
+    nome: string | null
+    /** R$ (venda menos devolução, sem bonificação), um por semana. */
+    semanas: number[]
+    /** O mês todo. */
+    total: number
+    /** Saldo do mês positivo: é quem conta na meta. */
+    positivado: boolean
+  }[]
+}
+
 /** Tudo que um representante vendeu num mês, de todos os fornecedores (card "Total vendido"). */
 export interface TotalVendidoMensal {
   id: string

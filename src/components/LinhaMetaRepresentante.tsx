@@ -1,4 +1,5 @@
 import { DetalhesMeta } from './DetalhesMeta'
+import { Realizado } from './Realizado'
 import { formatarValorMeta } from '../lib/unidadeMeta'
 import type { Meta, MetaRepresentante } from '../types'
 
@@ -30,7 +31,9 @@ export function LinhaMetaRepresentante({ representanteNome, meta, atribuicao, ao
       </td>
       {/* Meta 0 é "sem meta": a sincronização cria a linha só pra guardar o realizado. */}
       <td className="num">{percentual === null ? '—' : formatar(metaNum)}</td>
-      <td className="num">{formatar(realizadoNum)}</td>
+      <td className="num">
+        <Realizado meta={meta} atribuicao={atribuicao} texto={formatar(realizadoNum)} />
+      </td>
       <td className="num">{percentual === null ? '—' : formatar(falta)}</td>
       <td className="num">
         <div className="meta-progress-cell">
