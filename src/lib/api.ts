@@ -2,6 +2,7 @@ import { sessaoSalva } from './auth'
 import * as mock from './apiMock'
 import type {
   Agendamento,
+  ClienteCampanhaOrgannact,
   ClienteCampanhaWellpet,
   ClienteEspecialistaPet,
   Fornecedor,
@@ -415,4 +416,30 @@ export interface ProgressoCampanhaWellpet {
 export function progressoCampanhaWellpet(mes: string): Promise<ProgressoCampanhaWellpet> {
   if (MOCK) return mock.progressoCampanhaWellpet(mes)
   return requisitar(`/api/campanha-wellpet/progresso?mes=${encodeURIComponent(mes)}`)
+}
+
+/** Clientes da campanha Organnact, de todos os meses — a tela filtra pelo mês escolhido. */
+export function listarCampanhaOrgannact(): Promise<ClienteCampanhaOrgannact[]> {
+  if (MOCK) return mock.listarCampanhaOrgannact()
+  return requisitar('/api/campanha-organnact')
+}
+
+/**
+ * Começa a montar (ou refazer) a lista do mês — a carteira dos representantes com meta Organnact — e volta
+ * na hora. Acompanhe com progressoCampanhaOrgannact; sem erro, chame sincronizarCampanhaOrgannact depois.
+ */
+export async function montarCampanhaOrgannact(mes: string): Promise<void> {
+  if (MOCK) return mock.montarCampanhaOrgannact(mes)
+  await requisitar(`/api/campanha-organnact/montar?mes=${encodeURIComponent(mes)}`, { method: 'POST' })
+}
+
+/** Busca agora na ADS quem da lista já comprou Organnact no mês, e em qual semana (o mês atual também roda sozinho todo dia). */
+export function sincronizarCampanhaOrgannact(mes: string): Promise<ClienteCampanhaOrgannact[]> {
+  if (MOCK) return mock.sincronizarCampanhaOrgannact(mes)
+  return requisitar(`/api/campanha-organnact/sincronizar?mes=${encodeURIComponent(mes)}`, { method: 'POST' })
+}
+
+export function progressoCampanhaOrgannact(mes: string): Promise<ProgressoCampanhaWellpet> {
+  if (MOCK) return mock.progressoCampanhaOrgannact(mes)
+  return requisitar(`/api/campanha-organnact/progresso?mes=${encodeURIComponent(mes)}`)
 }

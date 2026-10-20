@@ -724,3 +724,16 @@
     text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 3px; cursor: pointer;
   }
   .btn-realizado:hover { color: var(--accent-hover); }
+
+  /* ---------- campanha Organnact ---------- */
+  /* Uma caixa por semana: quantos positivaram nela; clicar filtra a lista por essa semana. */
+  .org-semanas { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; max-width: 840px; margin-bottom: 24px; }
+  .org-semana { border: 2px solid transparent; text-align: left; font: inherit; color: inherit; cursor: pointer; padding: 16px 18px; min-width: 0; }
+  .org-semana .value { font-size: 30px; }
+  .org-semana:hover:not(:disabled) { border-color: var(--line); }
+  .org-semana.is-ativa { border-color: var(--accent); }
+  .org-semana.is-futura { opacity: .5; cursor: default; }
+  @media (max-width: 720px) { .org-semanas { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .org-dias { font-size: 13px; font-weight: 400; color: var(--ink-3); }
+  .org-comprou { color: var(--accent); font-weight: 500; }
+  .org-vazio { padding-top: 20px; }
