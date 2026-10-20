@@ -3,6 +3,7 @@ import { mesAtual, mesFechado, somarMeses } from './mes'
 import type { DadosUsuario } from './api'
 import type {
   Agendamento,
+  ClienteCampanhaOrgannact,
   ClienteCampanhaWellpet,
   ClienteEspecialistaPet,
   Fornecedor,
@@ -702,4 +703,80 @@ export function buscarPositivacaoClientes(metaRepresentanteId: string): Promise<
   })
   clientes.sort((a, b) => Number(b.positivado) - Number(a.positivado) || b.total - a.total)
   return new Promise((ok) => setTimeout(() => ok({ semanas, clientes }), 400))
+}
+
+let campanhaOrgannact: ClienteCampanhaOrgannact[] = []
+
+export function listarCampanhaOrgannact(): Promise<ClienteCampanhaOrgannact[]> {
+  return Promise.resolve(campanhaOrgannact)
+}
+
+/** Uma carteira inventada (mas fixa) por representante; a positivação começa zerada, como na API. */
+export function montarCampanhaOrgannact(mes: string): Promise<void> {
+  const representantes = [
+    ['043', 'PAULO CESAR DUARTE DOS SANTOS'],
+    ['053', 'JOSENIAS LOPES DE SOUZA'],
+    ['079', 'NAYARA NUNES DA SILVA'],
+  ]
+  const segmentos = ['VETERINARIOS', 'PET SHOP', 'AGROPECUARIA']
+  const novos: ClienteCampanhaOrgannact[] = Array.from({ length: 54 }, (_, i) => {
+    const [codigo, nome] = representantes[i % representantes.length]
+    return {
+      id: novoId('org'),
+      mes,
+      codigoCliente: String(20000 + i * 37),
+      nome: `CLIENTE ORGANNACT ${i + 1}`,
+      cnpjCpf: String(20000000000000 + i * 7654321),
+      segmento: segmentos[i % segmentos.length],
+      representanteCodigoAds: codigo,
+      representante: nome,
+      ultimaCompra: `${somarMeses(mes, -1 - (i % 4))}-${String(1 + (i % 27)).padStart(2, '0')}`,
+      semana1Reais: 0,
+      semana2Reais: 0,
+      semana3Reais: 0,
+      semana4Reais: 0,
+      organnactReais: 0,
+      primeiraCompra: null,
+      positivado: false,
+      semanaPositivacao: null,
+    }
+  })
+  demorarComProgresso(`organnact:${mes}`, () => {
+    campanhaOrgannact = [...campanhaOrgannact.filter((c) => c.mes !== mes), ...novos]
+  })
+  return Promise.resolve()
+}
+
+/** Uns 55% da carteira compram, a partir de uma semana sorteada (só semanas que já começaram). */
+export function sincronizarCampanhaOrgannact(mes: string): Promise<ClienteCampanhaOrgannact[]> {
+  const dia = (d: number) => `${mes}-${String(d).padStart(2, '0')}`
+  const semanasQueJaComecaram = [1, 8, 15, 22].filter((inicio) => dia(inicio) <= hoje()).length
+  campanhaOrgannact = campanhaOrgannact.map((c) => {
+    if (c.mes !== mes) return c
+    const comprou = semanasQueJaComecaram > 0 && sorteioFixo(c.codigoCliente + mes) < 0.55
+    const primeira = comprou ? Math.floor(sorteioFixo(c.nome + mes) * semanasQueJaComecaram) : -1
+    const semanas = [0, 1, 2, 3].map((s) =>
+      !comprou || s < primeira || s >= semanasQueJaComecaram
+        ? 0
+        : s === primeira || sorteioFixo(`${c.id}:${s}`) < 0.3
+          ? Math.round(180 + sorteioFixo(`${c.id}v${s}`) * 1800)
+          : 0,
+    )
+    return {
+      ...c,
+      semana1Reais: semanas[0],
+      semana2Reais: semanas[1],
+      semana3Reais: semanas[2],
+      semana4Reais: semanas[3],
+      organnactReais: semanas.reduce((a, b) => a + b, 0),
+      primeiraCompra: comprou ? dia(1 + primeira * 7 + Math.floor(sorteioFixo(c.id) * 5)) : null,
+      positivado: comprou,
+      semanaPositivacao: comprou ? primeira + 1 : null,
+    }
+  })
+  return demorarComProgresso(`organnact:${mes}`, () => campanhaOrgannact.filter((c) => c.mes === mes))
+}
+
+export function progressoCampanhaOrgannact(mes: string): Promise<{ percentual: number | null; erro: string | null }> {
+  return Promise.resolve({ percentual: progressoWellpet.get(`organnact:${mes}`) ?? null, erro: null })
 }

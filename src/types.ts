@@ -201,6 +201,42 @@ export interface ClienteCampanhaWellpet {
   positivado: boolean
 }
 
+/**
+ * Um cliente da campanha de positivação Organnact num mês: da carteira de um representante com meta
+ * Organnact no mês (comprou com ele nos 12 meses antes). A lista é montada a partir da ADS; o Organnact
+ * comprado no mês, por semana (1–7, 8–14, 15–21, 22 ao fim), vem da sincronização.
+ */
+export interface ClienteCampanhaOrgannact {
+  id: string
+  /** Mês da campanha, "2026-10". */
+  mes: string
+  /** Id do cliente na ADS. */
+  codigoCliente: string
+  nome: string
+  cnpjCpf: string
+  /** Segmento na ADS, ex.: "VETERINARIOS". */
+  segmento: string
+  /** Código do representante na ADS ("043"). */
+  representanteCodigoAds: string
+  /** Nome do representante como vem da ADS — o da última compra do cliente. */
+  representante: string
+  /** "2026-09-10": última compra com esse representante antes da campanha. */
+  ultimaCompra: string | null
+  /** Organnact em R$ em cada semana do mês (venda menos devolução). */
+  semana1Reais: number
+  semana2Reais: number
+  semana3Reais: number
+  semana4Reais: number
+  /** O mês todo. */
+  organnactReais: number
+  /** "2026-10-09"; null enquanto não positivou. */
+  primeiraCompra: string | null
+  /** Comprou Organnact no mês (saldo em R$ acima de zero). */
+  positivado: boolean
+  /** Semana (1 a 4) da primeira compra; null enquanto não positivou. */
+  semanaPositivacao: number | null
+}
+
 export interface Dados {
   materiais: Material[]
   agendamentos: Agendamento[]
