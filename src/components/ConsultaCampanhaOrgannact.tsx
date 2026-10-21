@@ -92,13 +92,19 @@ export function ConsultaCampanhaOrgannact({ podeEditar }: { podeEditar: boolean 
   const visiveis = termo
     ? doRepresentante.filter((c) => normalizar(c.nome).includes(termo) || c.codigoCliente.includes(termo) || c.cnpjCpf.includes(termo))
     : doRepresentante
-  // Dentro da semana, quem comprou mais vem primeiro.
-  const positivadosNa = (semana: number) =>
-    visiveis.filter((c) => c.semanaPositivacao === semana).sort((a, b) => b.organnactReais - a.organnactReais)
-  // Quem comprou com o representante mais recentemente vem primeiro: é o cliente mais fácil de visitar.
-  const faltam = visiveis
-    .filter((c) => !c.positivado)
-    .sort((a, b) => (b.ultimaCompra ?? '').localeCompare(a.ultimaCompra ?? '') || a.nome.localeCompare(b.nome, 'pt-BR'))
+  // Grade cliente × semana: quem positivou vem primeiro, pela semana e depois por quem comprou mais;
+  // depois quem falta, quem comprou com o representante mais recentemente primeiro (o mais fácil de visitar).
+  const gradeVisivel = visiveis
+    .filter((c) =>
+      situacao === 'todos' ? true : situacao === 'faltam' ? !c.positivado : c.semanaPositivacao === Number(situacao),
+    )
+    .sort(
+      (a, b) =>
+        (a.semanaPositivacao ?? 9) - (b.semanaPositivacao ?? 9) ||
+        b.organnactReais - a.organnactReais ||
+        (b.ultimaCompra ?? '').localeCompare(a.ultimaCompra ?? '') ||
+        a.nome.localeCompare(b.nome, 'pt-BR'),
+    )
   const dataDeHoje = hoje()
 
   function montar() {
@@ -293,107 +299,83 @@ export function ConsultaCampanhaOrgannact({ podeEditar }: { podeEditar: boolean 
             </div>
           </div>
 
-          {SEMANAS.filter((s) => situacao === 'todos' || situacao === String(s)).map((s) => {
-            const lista = positivadosNa(s)
-            if (situacao === 'todos' && !lista.length) return null
-            return (
-              <div key={s} className="meta-card">
-                <div className="meta-card-head">
-                  <h3>
-                    <span className="chip wp-positivou">Positivaram na semana {s}</span>
-                    <span className="org-dias"> {rotuloDias(mes, s)}</span>
-                    {representante === TODOS ? '' : ` · ${representante}`}
-                  </h3>
-                  <span className="meta-badge">{lista.length}</span>
-                </div>
-                {lista.length ? (
+          {gradeVisivel.length ? (
+            (representante === TODOS ? representantes : [representante]).map((r) => {
+              const linhas = gradeVisivel.filter((c) => c.representante === r)
+              if (!linhas.length) return null
+              const totalSemana = (s: number) => linhas.reduce((t, c) => t + reaisDaSemana(c, s), 0)
+              return (
+                <div key={r} className="meta-card">
+                  <div className="meta-card-head">
+                    <h3>Representante {r}</h3>
+                    <span className="meta-badge">
+                      {linhas.filter((c) => c.positivado).length} de {linhas.length} positivados
+                    </span>
+                  </div>
                   <div className="table-scroll">
                     <div className="table-wrap">
-                      <table className="tabela-wellpet">
+                      <table className="tabela-wellpet org-grade">
                         <thead>
                           <tr>
                             <th>Cliente</th>
-                            <th>1ª compra</th>
-                            {SEMANAS.map((x) => (
-                              <th key={x} className="num" title={rotuloDias(mes, x)}>
-                                Sem {x}
+                            {SEMANAS.map((s) => (
+                              <th key={s} className="num">
+                                Semana {s}
+                                <span className="org-dias">{rotuloDias(mes, s)}</span>
                               </th>
                             ))}
                             <th className="num">Total</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {lista.map((c) => (
+                          {linhas.map((c) => (
                             <tr key={c.id}>
-                              <Cliente cliente={c} mostrarRepresentante={representante === TODOS} />
-                              <td className="date">{c.primeiraCompra ? formatarData(c.primeiraCompra) : '—'}</td>
-                              {SEMANAS.map((x) => {
-                                const v = reaisDaSemana(c, x)
+                              <Cliente cliente={c} />
+                              {SEMANAS.map((s) => {
+                                const v = reaisDaSemana(c, s)
                                 return (
-                                  <td key={x} className={`num${v > 0 ? ' org-comprou' : ''}`}>
-                                    {v === 0 ? '—' : formatarValorMeta(v, 'REAL')}
+                                  <td key={s} className={`num${v > 0 ? ' org-comprou' : ''}`}>
+                                    {v === 0 ? '' : formatarValorMeta(v, 'REAL')}
                                   </td>
                                 )
                               })}
-                              <td className="num">
-                                <strong>{formatarValorMeta(c.organnactReais, 'REAL')}</strong>
-                              </td>
+                              <td className="num">{c.positivado ? <strong>{formatarValorMeta(c.organnactReais, 'REAL')}</strong> : ''}</td>
                             </tr>
                           ))}
                         </tbody>
+                        <tfoot>
+                          <tr>
+                            <td>Total</td>
+                            {SEMANAS.map((s) => (
+                              <td key={s} className="num">
+                                {totalSemana(s) ? formatarValorMeta(totalSemana(s), 'REAL') : ''}
+                              </td>
+                            ))}
+                            <td className="num">
+                              {formatarValorMeta(
+                                SEMANAS.reduce((t, s) => t + totalSemana(s), 0),
+                                'REAL',
+                              )}
+                            </td>
+                          </tr>
+                        </tfoot>
                       </table>
                     </div>
                   </div>
-                ) : (
-                  <p className="wp-vazio">Ninguém {termo ? 'com essa busca ' : ''}positivou nessa semana.</p>
-                )}
-              </div>
-            )
-          })}
-
-          {situacao === 'todos' && !visiveis.some((c) => c.positivado) ? (
-            <div className="meta-card">
-              <p className="wp-vazio org-vazio">Ninguém {termo ? 'com essa busca ' : ''}comprou Organnact ainda em {rotuloMesCurto(mes)}.</p>
-            </div>
-          ) : null}
-
-          {situacao === 'todos' || situacao === 'faltam' ? (
-            <div className="meta-card">
-              <div className="meta-card-head">
-                <h3>
-                  <span className="chip wp-falta">Ainda faltam</span>
-                  {representante === TODOS ? '' : ` ${representante}`}
-                </h3>
-                <span className="meta-badge">{faltam.length}</span>
-              </div>
-              {faltam.length ? (
-                <div className="table-scroll">
-                  <div className="table-wrap">
-                    <table className="tabela-wellpet">
-                      <thead>
-                        <tr>
-                          <th>Cliente</th>
-                          <th>CPF/CNPJ</th>
-                          <th>Última compra</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {faltam.map((c) => (
-                          <tr key={c.id}>
-                            <Cliente cliente={c} mostrarRepresentante={representante === TODOS} />
-                            <td className="date">{documento(c.cnpjCpf)}</td>
-                            <td className="date">{c.ultimaCompra ? formatarData(c.ultimaCompra) : '—'}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
                 </div>
-              ) : (
-                <p className="wp-vazio">{termo ? 'Ninguém com essa busca.' : 'Todos os clientes da carteira já positivaram.'}</p>
-              )}
+              )
+            })
+          ) : (
+            <div className="meta-card">
+              <p className="wp-vazio org-vazio">
+                {termo
+                  ? 'Ninguém com essa busca.'
+                  : situacao === 'faltam'
+                    ? 'Todos os clientes da carteira já positivaram.'
+                    : 'Ninguém positivou nessa semana.'}
+              </p>
             </div>
-          ) : null}
+          )}
         </>
       )}
 
@@ -406,14 +388,16 @@ export function ConsultaCampanhaOrgannact({ podeEditar }: { podeEditar: boolean 
   )
 }
 
-function Cliente({ cliente: c, mostrarRepresentante }: { cliente: ClienteCampanhaOrgannact; mostrarRepresentante: boolean }) {
+function Cliente({ cliente: c }: { cliente: ClienteCampanhaOrgannact }) {
   return (
     <td className="cell-material">
       {c.nome}
       <span className="meta-em-reais">
         {c.codigoCliente}
         {c.segmento ? ` · ${c.segmento.toLowerCase()}` : ''}
-        {mostrarRepresentante ? ` · ${c.representante}` : ''}
+        {c.positivado
+          ? ` · 1ª compra ${c.primeiraCompra ? formatarData(c.primeiraCompra) : '—'}`
+          : ` · ${documento(c.cnpjCpf)} · últ. compra ${c.ultimaCompra ? formatarData(c.ultimaCompra) : '—'}`}
       </span>
     </td>
   )
