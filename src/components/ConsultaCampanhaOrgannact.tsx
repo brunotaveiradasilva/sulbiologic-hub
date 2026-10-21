@@ -3,7 +3,7 @@ import { CarregandoTelaInteira } from './CarregandoTelaInteira'
 import { EstadoVazio } from './EstadoVazio'
 import { SeletorMes } from './SeletorMes'
 import { useCampanhaOrgannact } from '../hooks/useCampanhaPositivacao'
-import { formatarData, hoje } from '../lib/datas'
+import { formatarData } from '../lib/datas'
 import { mesAtual, rotuloMes, rotuloMesCurto } from '../lib/mes'
 import { formatarValorMeta } from '../lib/unidadeMeta'
 import type { ClienteCampanhaOrgannact } from '../types'
@@ -14,21 +14,10 @@ const SEMANAS = [1, 2, 3, 4] as const
 /** 'todos', 'faltam' ou a semana em que positivou ('1' a '4'). */
 type Situacao = 'todos' | 'faltam' | '1' | '2' | '3' | '4'
 
-interface Resumo {
-  representante: string
-  clientes: number
-  positivados: number
-  /** Quantos positivaram em cada semana (a da primeira compra). */
-  porSemana: number[]
-  reais: number
-}
-
-function resumir(representante: string, clientes: ClienteCampanhaOrgannact[]): Resumo {
+function resumir(clientes: ClienteCampanhaOrgannact[]) {
   return {
-    representante,
     clientes: clientes.length,
     positivados: clientes.filter((c) => c.positivado).length,
-    porSemana: SEMANAS.map((s) => clientes.filter((c) => c.semanaPositivacao === s).length),
     reais: clientes.reduce((s, c) => s + (c.positivado ? c.organnactReais : 0), 0),
   }
 }
@@ -79,14 +68,7 @@ export function ConsultaCampanhaOrgannact({ podeEditar }: { podeEditar: boolean 
     [doMes],
   )
   const doRepresentante = representante === TODOS ? doMes : doMes.filter((c) => c.representante === representante)
-  const resumo = resumir(representante, doRepresentante)
-  const porRepresentante = useMemo(
-    () =>
-      representantes
-        .map((r) => resumir(r, doMes.filter((c) => c.representante === r)))
-        .sort((a, b) => pct(b.positivados, b.clientes) - pct(a.positivados, a.clientes)),
-    [representantes, doMes],
-  )
+  const resumo = resumir(doRepresentante)
 
   const termo = normalizar(busca.trim())
   const visiveis = termo
@@ -105,7 +87,7 @@ export function ConsultaCampanhaOrgannact({ podeEditar }: { podeEditar: boolean 
         (b.ultimaCompra ?? '').localeCompare(a.ultimaCompra ?? '') ||
         a.nome.localeCompare(b.nome, 'pt-BR'),
     )
-  const dataDeHoje = hoje()
+  const totalSemana = (s: number) => gradeVisivel.reduce((t, c) => t + reaisDaSemana(c, s), 0)
 
   function montar() {
     const jaTem = doMes.length > 0
@@ -199,81 +181,6 @@ export function ConsultaCampanhaOrgannact({ podeEditar }: { podeEditar: boolean 
             </div>
           </div>
 
-          <div className="org-semanas">
-            {SEMANAS.map((s, i) => {
-              const futura = diasDaSemana(mes, s).inicio > dataDeHoje
-              const acumulado = resumo.porSemana.slice(0, i + 1).reduce((a, b) => a + b, 0)
-              return (
-                <button
-                  key={s}
-                  type="button"
-                  className={`stat org-semana${situacao === String(s) ? ' is-ativa' : ''}${futura ? ' is-futura' : ''}`}
-                  disabled={futura}
-                  onClick={() => setSituacao(situacao === String(s) ? 'todos' : (String(s) as Situacao))}
-                >
-                  <span className="label">
-                    Semana {s} · {rotuloDias(mes, s)}
-                  </span>
-                  <span className="value">{futura ? '—' : `+${resumo.porSemana[i]}`}</span>
-                  <span className="note">
-                    {futura
-                      ? 'ainda não começou'
-                      : `${acumulado} no acumulado · ${formatarPct(pct(acumulado, resumo.clientes))}`}
-                  </span>
-                </button>
-              )
-            })}
-          </div>
-
-          {representante === TODOS ? (
-            <div className="meta-card">
-              <div className="meta-card-head">
-                <h3>Por representante</h3>
-                <span className="meta-badge">{rotuloMesCurto(mes)}</span>
-              </div>
-              <div className="table-scroll">
-                <div className="table-wrap">
-                  <table className="tabela-wellpet">
-                    <thead>
-                      <tr>
-                        <th>Representante</th>
-                        <th className="num">Carteira</th>
-                        {SEMANAS.map((s) => (
-                          <th key={s} className="num" title={rotuloDias(mes, s)}>
-                            Sem {s}
-                          </th>
-                        ))}
-                        <th className="num">Faltam</th>
-                        <th>Positivação</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {porRepresentante.map((r) => (
-                        <tr key={r.representante}>
-                          <td className="cell-material">
-                            <button className="wp-link" onClick={() => setRepresentante(r.representante)}>
-                              {r.representante}
-                            </button>
-                          </td>
-                          <td className="num">{r.clientes}</td>
-                          {r.porSemana.map((n, i) => (
-                            <td key={i} className="num">
-                              {n || '—'}
-                            </td>
-                          ))}
-                          <td className="num">{r.clientes - r.positivados}</td>
-                          <td>
-                            <BarraPositivacao percentual={pct(r.positivados, r.clientes)} />
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          ) : null}
-
           <div className="consulta-filtros wp-filtros-lista">
             <div className="field consulta-filtro">
               <label htmlFor="org-busca">Buscar cliente</label>
@@ -300,34 +207,36 @@ export function ConsultaCampanhaOrgannact({ podeEditar }: { podeEditar: boolean 
           </div>
 
           {gradeVisivel.length ? (
-            (representante === TODOS ? representantes : [representante]).map((r) => {
-              const linhas = gradeVisivel.filter((c) => c.representante === r)
-              if (!linhas.length) return null
-              const totalSemana = (s: number) => linhas.reduce((t, c) => t + reaisDaSemana(c, s), 0)
-              return (
-                <div key={r} className="meta-card">
-                  <div className="meta-card-head">
-                    <h3>Representante {r}</h3>
-                    <span className="meta-badge">
-                      {linhas.filter((c) => c.positivado).length} de {linhas.length} positivados
-                    </span>
-                  </div>
-                  <div className="table-scroll">
-                    <div className="table-wrap">
-                      <table className="tabela-wellpet org-grade">
-                        <thead>
-                          <tr>
-                            <th>Cliente</th>
-                            {SEMANAS.map((s) => (
-                              <th key={s} className="num">
-                                Semana {s}
-                                <span className="org-dias">{rotuloDias(mes, s)}</span>
-                              </th>
-                            ))}
-                            <th className="num">Total</th>
+            <div className="meta-card">
+              <div className="table-scroll">
+                <div className="table-wrap">
+                  <table className="tabela-wellpet org-grade">
+                    <thead>
+                      <tr>
+                        <th>Cliente</th>
+                        {SEMANAS.map((s) => (
+                          <th key={s} className="num">
+                            Semana {s}
+                            <span className="org-dias">{rotuloDias(mes, s)}</span>
+                          </th>
+                        ))}
+                        <th className="num">Total</th>
+                      </tr>
+                    </thead>
+                    {(representante === TODOS ? representantes : [representante]).map((r) => {
+                      const linhas = gradeVisivel.filter((c) => c.representante === r)
+                      if (!linhas.length) return null
+                      return (
+                        <tbody key={r}>
+                          <tr className="org-grade-rep">
+                            <td colSpan={SEMANAS.length + 2}>
+                              Representante {r}
+                              <span className="org-dias">
+                                {' '}
+                                · {linhas.filter((c) => c.positivado).length} de {linhas.length} positivados
+                              </span>
+                            </td>
                           </tr>
-                        </thead>
-                        <tbody>
                           {linhas.map((c) => (
                             <tr key={c.id}>
                               <Cliente cliente={c} />
@@ -339,32 +248,34 @@ export function ConsultaCampanhaOrgannact({ podeEditar }: { podeEditar: boolean 
                                   </td>
                                 )
                               })}
-                              <td className="num">{c.positivado ? <strong>{formatarValorMeta(c.organnactReais, 'REAL')}</strong> : ''}</td>
+                              <td className="num">
+                                {c.positivado ? <strong>{formatarValorMeta(c.organnactReais, 'REAL')}</strong> : ''}
+                              </td>
                             </tr>
                           ))}
                         </tbody>
-                        <tfoot>
-                          <tr>
-                            <td>Total</td>
-                            {SEMANAS.map((s) => (
-                              <td key={s} className="num">
-                                {totalSemana(s) ? formatarValorMeta(totalSemana(s), 'REAL') : ''}
-                              </td>
-                            ))}
-                            <td className="num">
-                              {formatarValorMeta(
-                                SEMANAS.reduce((t, s) => t + totalSemana(s), 0),
-                                'REAL',
-                              )}
-                            </td>
-                          </tr>
-                        </tfoot>
-                      </table>
-                    </div>
-                  </div>
+                      )
+                    })}
+                    <tfoot>
+                      <tr>
+                        <td>Total</td>
+                        {SEMANAS.map((s) => (
+                          <td key={s} className="num">
+                            {totalSemana(s) ? formatarValorMeta(totalSemana(s), 'REAL') : ''}
+                          </td>
+                        ))}
+                        <td className="num">
+                          {formatarValorMeta(
+                            SEMANAS.reduce((t, s) => t + totalSemana(s), 0),
+                            'REAL',
+                          )}
+                        </td>
+                      </tr>
+                    </tfoot>
+                  </table>
                 </div>
-              )
-            })
+              </div>
+            </div>
           ) : (
             <div className="meta-card">
               <p className="wp-vazio org-vazio">
@@ -400,20 +311,6 @@ function Cliente({ cliente: c }: { cliente: ClienteCampanhaOrgannact }) {
           : ` · ${documento(c.cnpjCpf)} · últ. compra ${c.ultimaCompra ? formatarData(c.ultimaCompra) : '—'}`}
       </span>
     </td>
-  )
-}
-
-function BarraPositivacao({ percentual }: { percentual: number }) {
-  return (
-    <div className="meta-progress-cell">
-      <span className="meta-progress-track">
-        <span
-          className={`meta-progress-fill${percentual >= 100 ? ' is-complete' : ''}`}
-          style={{ width: `${Math.min(percentual, 100)}%` }}
-        />
-      </span>
-      <span className="meta-progress-pct">{formatarPct(percentual)}</span>
-    </div>
   )
 }
 
