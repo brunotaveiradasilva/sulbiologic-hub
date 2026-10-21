@@ -737,3 +737,10 @@
   .org-dias { font-size: 13px; font-weight: 400; color: var(--ink-3); }
   .org-comprou { color: var(--accent); font-weight: 500; }
   .org-vazio { padding-top: 20px; }
+  /* Grade cliente × semana, com linhas de planilha; célula vazia é semana sem compra. */
+  .org-grade th, .org-grade td { border: 1px solid var(--line); padding: 8px 12px; }
+  .org-grade .cell-material { min-width: 220px; }
+  .org-grade .meta-em-reais { font-size: 12px; }
+  .org-grade td.num { min-width: 110px; vertical-align: middle; }
+  .org-grade th .org-dias { display: block; font-size: 12px; }
+  .org-grade tfoot td { font-weight: 600; background: var(--surface-2); }
