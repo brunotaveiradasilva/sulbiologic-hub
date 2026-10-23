@@ -6,6 +6,7 @@ import type {
   ClienteCampanhaWellpet,
   ClienteEspecialistaPet,
   Fornecedor,
+  LoginGerado,
   Material,
   Meta,
   MetaRepresentante,
@@ -94,6 +95,23 @@ export interface DadosUsuario {
   email: string
   /** AAAA-MM-DD, ou null se não informada. */
   dataNascimento: string | null
+  celular: string
+  ativo: boolean
+}
+
+/** Cria um login de representante, com senha aleatória, pra cada id (ou, sem ids, pra todo representante sem login). */
+export function gerarLoginsRepresentantes(representanteIds: string[]): Promise<LoginGerado[]> {
+  if (MOCK) return mock.gerarLoginsRepresentantes(representanteIds)
+  return requisitar('/api/auth/usuarios/representantes', {
+    method: 'POST',
+    body: JSON.stringify({ representanteIds }),
+  })
+}
+
+/** Troca a senha do login por uma aleatória e devolve ela. */
+export function gerarNovaSenha(usuario: string): Promise<LoginGerado> {
+  if (MOCK) return mock.gerarNovaSenha(usuario)
+  return requisitar(`/api/auth/usuarios/${encodeURIComponent(usuario)}/nova-senha`, { method: 'POST' })
 }
 
 export function criarUsuario(usuario: string, senha: string, dados: DadosUsuario): Promise<void> {

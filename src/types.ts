@@ -17,6 +17,23 @@ export interface UsuarioResumo {
   email?: string | null
   /** AAAA-MM-DD */
   dataNascimento?: string | null
+  celular?: string | null
+  /** Desativado não consegue entrar (o login continua guardado). */
+  ativo: boolean
+  /** Data e hora ISO; null nos logins criados antes desses campos existirem / em quem nunca entrou. */
+  criadoEm?: string | null
+  ultimoAcesso?: string | null
+}
+
+/** Login com a senha em texto puro, que só existe na resposta de quem gerou — no banco fica só o hash. */
+export interface LoginGerado {
+  usuario: string
+  senha: string
+  nome?: string | null
+  representanteId?: string | null
+  representanteNome?: string | null
+  celular?: string | null
+  email?: string | null
 }
 
 /** Status guardado no agendamento. */

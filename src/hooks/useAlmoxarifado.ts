@@ -15,10 +15,11 @@ function mensagemErro(erro: unknown): string {
  * Estado único do app: materiais, agendamentos e as ações que os alteram.
  * Cada ação atualiza a tela na hora (otimista) e confirma com a API em seguida;
  * se a API recusar, a mudança é desfeita e o erro aparece no rodapé.
+ * ativo=false (login de representante, que não vê o almoxarifado) não busca nada.
  */
-export function useAlmoxarifado() {
+export function useAlmoxarifado(ativo = true) {
   const [dados, setDados] = useState<Dados>(DADOS_VAZIOS)
-  const [carregando, setCarregando] = useState(true)
+  const [carregando, setCarregando] = useState(ativo)
   const [erro, setErro] = useState<string | null>(null)
 
   const carregarTudo = useCallback(async () => {
@@ -35,8 +36,8 @@ export function useAlmoxarifado() {
   }, [])
 
   useEffect(() => {
-    carregarTudo()
-  }, [carregarTudo])
+    if (ativo) carregarTudo()
+  }, [ativo, carregarTudo])
 
   const salvarMaterial = useCallback((material: Omit<Material, 'id'>, id?: string | null) => {
     setErro(null)

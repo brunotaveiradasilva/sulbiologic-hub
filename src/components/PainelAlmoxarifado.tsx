@@ -29,6 +29,8 @@ interface Props {
   isAdmin: boolean
   /** Supervisor e representante também veem Metas e Campanhas, só pra consultar. */
   consultaMetas: boolean
+  /** Representante não vê Materiais (nem busca esses dados). */
+  veAlmoxarifado: boolean
   avatar: string | null
   aoSair: () => void
   aoTrocarFoto: (avatar: string | null) => Promise<void>
@@ -43,8 +45,16 @@ const FILTROS: { valor: Filtro; rotulo: string }[] = [
 ]
 
 /** Tudo que só existe depois do login: só monta (e só busca dados da API) quem já está autenticado. */
-export function PainelAlmoxarifado({ usuario, isAdmin, consultaMetas, avatar, aoSair, aoTrocarFoto }: Props) {
-  const app = useAlmoxarifado()
+export function PainelAlmoxarifado({
+  usuario,
+  isAdmin,
+  consultaMetas,
+  veAlmoxarifado,
+  avatar,
+  aoSair,
+  aoTrocarFoto,
+}: Props) {
+  const app = useAlmoxarifado(veAlmoxarifado)
 
   const [aba, setAba] = useState<AbaPrincipal>('inicio')
   const [subabaMateriais, setSubabaMateriais] = useState<SubabaMateriais>('agendamentos')
@@ -133,6 +143,7 @@ export function PainelAlmoxarifado({ usuario, isAdmin, consultaMetas, avatar, ao
             usuario={usuario}
             isAdmin={isAdmin}
             consultaMetas={consultaMetas}
+            veAlmoxarifado={veAlmoxarifado}
             resumo={resumo}
             aoAbrir={abrirDestino}
           />
@@ -328,6 +339,7 @@ export function PainelAlmoxarifado({ usuario, isAdmin, consultaMetas, avatar, ao
         aba={aba}
         isAdmin={isAdmin}
         consultaMetas={consultaMetas}
+        veAlmoxarifado={veAlmoxarifado}
         usuario={usuario}
         avatar={avatar}
         aoMudarAba={setAba}

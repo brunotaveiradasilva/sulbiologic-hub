@@ -18,6 +18,7 @@ export default function App() {
       usuario={auth.usuario}
       isAdmin={auth.isAdmin}
       consultaMetas={auth.consultaMetas}
+      veAlmoxarifado={auth.veAlmoxarifado}
       avatar={auth.avatar}
       aoSair={auth.sair}
       aoTrocarFoto={auth.trocarFoto}
