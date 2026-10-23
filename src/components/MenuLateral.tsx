@@ -11,7 +11,8 @@ import {
   type SubabaMateriais,
 } from '../lib/navegacao'
 
-export type AbaPrincipal = 'inicio' | 'materiais' | 'metas' | 'campanhas' | 'dados' | 'usuarios'
+/** 'conta' (Minha conta) não aparece na lista do menu: abre pelo menu da foto, embaixo. */
+export type AbaPrincipal = 'inicio' | 'materiais' | 'metas' | 'campanhas' | 'dados' | 'usuarios' | 'conta'
 
 interface Props {
   aba: AbaPrincipal

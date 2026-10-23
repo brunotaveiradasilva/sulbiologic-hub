@@ -9,6 +9,8 @@ import type {
   Fornecedor,
   LoginGerado,
   Material,
+  MeuLogin,
+  MeusDados,
   Meta,
   MetaRepresentante,
   PositivacaoClientes,
@@ -150,9 +152,35 @@ export function login(
 
 let logado = 'admin'
 
-export function eu(): Promise<{ usuario: string; role: Role; avatar: string | null; nome: string | null }> {
+export function eu(): Promise<MeuLogin> {
   const u = usuarios.find((x) => x.usuario === logado)
-  return Promise.resolve({ usuario: logado, role: u?.role ?? 'ADMIN', avatar, nome: u?.nome ?? null })
+  return Promise.resolve({
+    usuario: logado,
+    role: u?.role ?? 'ADMIN',
+    avatar,
+    nome: u?.nome ?? null,
+    sobrenome: u?.sobrenome ?? null,
+    email: u?.email ?? null,
+    celular: u?.celular ?? null,
+    dataNascimento: u?.dataNascimento ?? null,
+    representanteNome: u ? comRepresentante(u).representanteNome : null,
+  })
+}
+
+export function atualizarMeusDados(dados: MeusDados): Promise<MeuLogin> {
+  usuarios = usuarios.map((u) =>
+    u.usuario === logado
+      ? {
+          ...u,
+          nome: dados.nome.trim() || null,
+          sobrenome: dados.sobrenome.trim() || null,
+          email: dados.email.trim() || null,
+          celular: dados.celular.trim() || null,
+          dataNascimento: dados.dataNascimento,
+        }
+      : u,
+  )
+  return eu()
 }
 
 function comRepresentante(u: UsuarioResumo): UsuarioResumo {

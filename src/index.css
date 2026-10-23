@@ -480,6 +480,29 @@
   .conta-senha-rodape { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
   .conta-ok { font-size: 13px; color: var(--st-devolvido); }
 
+  /* Página Minha conta: dados à esquerda, acesso e senha à direita; no celular, um embaixo do outro. */
+  .conta-pagina { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 18px; align-items: start; }
+  @media (max-width: 900px) { .conta-pagina { grid-template-columns: 1fr; } }
+  .conta-lateral { display: grid; gap: 18px; }
+  .conta-secao {
+    background: var(--surface-2); border-radius: var(--radius-lg);
+    padding: 22px; display: grid; gap: 16px; align-content: start;
+  }
+  .conta-secao h3 { margin: 0; font-size: 17px; font-weight: 600; letter-spacing: -.015em; }
+  .conta-secao-rodape { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 10px; }
+  .conta-secao-rodape .msg { margin-right: auto; font-size: 13px; color: var(--st-atrasado); }
+  .conta-acesso { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 0; font-size: 15px; }
+  .conta-acesso dt { color: var(--ink-3); }
+  .conta-acesso dd { margin: 0; overflow-wrap: anywhere; }
+  .conta-mudancas { margin: 10px 0 0; padding-left: 18px; display: grid; gap: 6px; font-size: 15px; }
+  .dialogo-sucesso { display: flex; gap: 14px; align-items: center; }
+  .dialogo-sucesso p { margin: 0; }
+  .dialogo-sucesso-icone {
+    flex: none; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center;
+    font-size: 20px; font-weight: 700; color: var(--st-devolvido);
+    background: color-mix(in srgb, var(--st-devolvido) 14%, transparent);
+  }
+
   .field { display: grid; gap: 6px; }
   .field label { font-size: 13px; color: var(--ink-2); }
   .field input, .field select, .field textarea {

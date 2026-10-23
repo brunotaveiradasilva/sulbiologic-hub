@@ -22,7 +22,7 @@ import { PainelCampanhas } from './PainelCampanhas'
 import { PainelDados } from './PainelDados'
 import { MenuLateral, type AbaPrincipal } from './MenuLateral'
 import { PaginaInicial, type Destino } from './PaginaInicial'
-import type { Agendamento, Filtro, Material } from '../types'
+import type { Agendamento, Filtro, Material, MeuLogin, MeusDados } from '../types'
 
 interface Props {
   usuario: string
@@ -36,6 +36,7 @@ interface Props {
   avatar: string | null
   aoSair: () => void
   aoTrocarFoto: (avatar: string | null) => Promise<void>
+  aoSalvarDados: (dados: MeusDados) => Promise<MeuLogin>
 }
 
 const FILTROS: { valor: Filtro; rotulo: string }[] = [
@@ -56,6 +57,7 @@ export function PainelAlmoxarifado({
   avatar,
   aoSair,
   aoTrocarFoto,
+  aoSalvarDados,
 }: Props) {
   const app = useAlmoxarifado(veAlmoxarifado)
 
@@ -82,7 +84,6 @@ export function PainelAlmoxarifado({
     material: null,
   })
 
-  const [dialogoConta, setDialogoConta] = useState(false)
 
   const primeiraCarga = app.carregando && !app.materiais.length && !app.agendamentos.length
 
@@ -160,6 +161,8 @@ export function PainelAlmoxarifado({
           <PainelDados subaba={subabaDados} aoMudarSubaba={setSubabaDados} />
         ) : aba === 'usuarios' ? (
           <PainelUsuarios usuarioAtual={usuario} />
+        ) : aba === 'conta' ? (
+          <MinhaConta avatar={avatar} aoTrocarFoto={aoTrocarFoto} aoSalvarDados={aoSalvarDados} />
         ) : (
           <section className="view" role="tabpanel">
             <div className="view-head">
@@ -356,7 +359,7 @@ export function PainelAlmoxarifado({
         subabaDados={subabaDados}
         aoMudarSubabaDados={setSubabaDados}
         aoAbrirUsuarios={() => setAba('usuarios')}
-        aoAbrirConta={() => setDialogoConta(true)}
+        aoAbrirConta={() => setAba('conta')}
         aoSair={aoSair}
       />
 
@@ -391,15 +394,6 @@ export function PainelAlmoxarifado({
           material={dialogoMaterial.material}
           aoFechar={() => setDialogoMaterial({ aberto: false, material: null })}
           aoSalvar={app.salvarMaterial}
-        />
-      ) : null}
-
-      {dialogoConta ? (
-        <MinhaConta
-          usuario={usuario}
-          avatar={avatar}
-          aoTrocarFoto={aoTrocarFoto}
-          aoFechar={() => setDialogoConta(false)}
         />
       ) : null}
 

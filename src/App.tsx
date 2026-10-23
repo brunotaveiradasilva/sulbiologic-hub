@@ -23,6 +23,7 @@ export default function App() {
       avatar={auth.avatar}
       aoSair={auth.sair}
       aoTrocarFoto={auth.trocarFoto}
+      aoSalvarDados={auth.atualizarMeusDados}
     />
   )
 }

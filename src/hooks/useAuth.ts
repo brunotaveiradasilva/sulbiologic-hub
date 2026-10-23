@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import * as api from '../lib/api'
 import { ErroApi, aoSessaoExpirar } from '../lib/api'
 import { limparSessao, salvarAvatar, salvarPerfil, salvarSessao, sessaoSalva } from '../lib/auth'
-import type { Role } from '../types'
+import type { MeusDados, Role } from '../types'
 
 /** Sessão do usuário: quem está logado (se alguém), seu papel, foto, e as ações de entrar/sair/trocar foto. */
 export function useAuth() {
@@ -72,6 +72,14 @@ export function useAuth() {
     setAvatar(novoAvatar)
   }, [])
 
+  /** Minha conta: salva nome e contato e já atualiza a saudação e o menu. */
+  const atualizarMeusDados = useCallback(async (dados: MeusDados) => {
+    const atual = await api.atualizarMeusDados(dados)
+    salvarPerfil(atual.role, atual.avatar ?? null, atual.nome ?? null)
+    setNome(atual.nome ?? null)
+    return atual
+  }, [])
+
   return {
     usuario,
     role,
@@ -89,5 +97,6 @@ export function useAuth() {
     entrar,
     sair,
     trocarFoto,
+    atualizarMeusDados,
   }
 }

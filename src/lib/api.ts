@@ -8,6 +8,8 @@ import type {
   Fornecedor,
   LoginGerado,
   Material,
+  MeuLogin,
+  MeusDados,
   Meta,
   MetaRepresentante,
   PositivacaoClientes,
@@ -82,9 +84,15 @@ export function login(
 }
 
 /** O próprio login de quem está com sessão — nome, foto e perfil atualizados pelo admin. */
-export function eu(): Promise<{ usuario: string; role: Role; avatar: string | null; nome: string | null }> {
+export function eu(): Promise<MeuLogin> {
   if (MOCK) return mock.eu()
   return requisitar('/api/auth/eu')
+}
+
+/** Minha conta: nome, contato e nascimento de quem está logado. */
+export function atualizarMeusDados(dados: MeusDados): Promise<MeuLogin> {
+  if (MOCK) return mock.atualizarMeusDados(dados)
+  return requisitar('/api/auth/eu', { method: 'PUT', body: JSON.stringify(dados) })
 }
 
 export function listarUsuarios(): Promise<UsuarioResumo[]> {
