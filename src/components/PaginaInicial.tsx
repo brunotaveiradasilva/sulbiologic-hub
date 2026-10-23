@@ -24,6 +24,7 @@ interface Props {
   usuario: string
   isAdmin: boolean
   consultaMetas: boolean
+  veAlmoxarifado: boolean
   resumo: Resumo
   aoAbrir: (destino: Destino) => void
 }
@@ -43,15 +44,19 @@ function saudacao(hora = new Date().getHours()) {
 }
 
 /** Tela de entrada: um cartão por seção do menu lateral, com atalho direto pra cada subaba. */
-export function PaginaInicial({ usuario, isAdmin, consultaMetas, resumo, aoAbrir }: Props) {
+export function PaginaInicial({ usuario, isAdmin, consultaMetas, veAlmoxarifado, resumo, aoAbrir }: Props) {
   const cartoes: Cartao[] = [
-    {
-      chave: 'materiais',
-      titulo: 'Materiais',
-      descricao: 'Retiradas e devoluções do almoxarifado, com o cadastro do que existe em estoque.',
-      icone: <IconeMateriais />,
-      atalhos: SUBABAS_MATERIAIS.map((s) => ({ rotulo: s.rotulo, destino: { aba: 'materiais', subaba: s.valor } })),
-    },
+    ...(veAlmoxarifado
+      ? ([
+          {
+            chave: 'materiais',
+            titulo: 'Materiais',
+            descricao: 'Retiradas e devoluções do almoxarifado, com o cadastro do que existe em estoque.',
+            icone: <IconeMateriais />,
+            atalhos: SUBABAS_MATERIAIS.map((s) => ({ rotulo: s.rotulo, destino: { aba: 'materiais', subaba: s.valor } })),
+          },
+        ] satisfies Cartao[])
+      : []),
     ...(consultaMetas
       ? ([
           {

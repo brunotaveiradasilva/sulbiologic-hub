@@ -25,9 +25,36 @@ export function FormularioUsuario({ usuario, representantes, aoFechar, aoSalvar 
   const [dataNascimento, setDataNascimento] = useState(usuario?.dataNascimento ?? '')
   const [role, setRole] = useState<Role>(usuario?.role ?? 'REPRESENTANTE')
   const [representanteId, setRepresentanteId] = useState(usuario?.representanteId ?? '')
+  const [celular, setCelular] = useState(usuario?.celular ?? '')
+  const [ativo, setAtivo] = useState(usuario?.ativo ?? true)
   const [senha, setSenha] = useState('')
+  // Senha gerada aparece em texto, pra dar pra copiar; digitada continua escondida.
+  const [senhaVisivel, setSenhaVisivel] = useState(false)
   const [erro, setErro] = useState('')
   const [salvando, setSalvando] = useState(false)
+
+  /** Ao escolher o representante, completa o que ainda está em branco com o cadastro dele. */
+  function escolherRepresentante(id: string) {
+    setRepresentanteId(id)
+    const r = representantes.find((x) => x.id === id)
+    if (!r) return
+    const [primeiro, ...resto] = r.nome.trim().split(/\s+/)
+    if (!nome.trim()) setNome(primeiro)
+    if (!sobrenome.trim()) setSobrenome(resto.join(' '))
+    if (!email.trim() && r.email) setEmail(r.email)
+    if (!celular.trim() && r.celular) setCelular(r.celular)
+    if (!editando && !login.trim()) {
+      const partes = r.nome.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').trim().split(/\s+/)
+      setLogin(partes.length > 1 ? `${partes[0]}.${partes[partes.length - 1]}` : partes[0])
+    }
+  }
+
+  function gerarSenha() {
+    const alfabeto = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789'
+    const sorteio = crypto.getRandomValues(new Uint32Array(8))
+    setSenha(Array.from(sorteio, (n) => alfabeto[n % alfabeto.length]).join(''))
+    setSenhaVisivel(true)
+  }
 
   async function confirmar() {
     if (salvando) return
@@ -50,6 +77,8 @@ export function FormularioUsuario({ usuario, representantes, aoFechar, aoSalvar 
         sobrenome: sobrenome.trim(),
         email: email.trim(),
         dataNascimento: dataNascimento || null,
+        celular: celular.trim(),
+        ativo,
       })
       aoFechar()
     } catch (e) {
@@ -85,6 +114,18 @@ export function FormularioUsuario({ usuario, representantes, aoFechar, aoSalvar 
 
       <div className="grid-2">
         <div className="field">
+          <label htmlFor="u-celular">Celular / WhatsApp</label>
+          <input
+            id="u-celular"
+            type="tel"
+            maxLength={20}
+            autoComplete="off"
+            placeholder="Opcional"
+            value={celular}
+            onChange={(e) => setCelular(e.target.value)}
+          />
+        </div>
+        <div className="field">
           <label htmlFor="u-email">E-mail</label>
           <input
             id="u-email"
@@ -96,6 +137,9 @@ export function FormularioUsuario({ usuario, representantes, aoFechar, aoSalvar 
             onChange={(e) => setEmail(e.target.value)}
           />
         </div>
+      </div>
+
+      <div className="grid-2">
         <div className="field">
           <label htmlFor="u-nascimento">Data de nascimento</label>
           <input
@@ -105,6 +149,13 @@ export function FormularioUsuario({ usuario, representantes, aoFechar, aoSalvar 
             value={dataNascimento}
             onChange={(e) => setDataNascimento(e.target.value)}
           />
+        </div>
+        <div className="field">
+          <span className="label-falso">Acesso</span>
+          <label className="check-linha">
+            <input type="checkbox" checked={ativo} onChange={(e) => setAtivo(e.target.checked)} />
+            <span>{ativo ? 'Ativo — consegue entrar' : 'Desativado — não entra'}</span>
+          </label>
         </div>
       </div>
 
@@ -122,7 +173,7 @@ export function FormularioUsuario({ usuario, representantes, aoFechar, aoSalvar 
         {role === 'REPRESENTANTE' ? (
           <div className="field">
             <label htmlFor="u-representante">Representante</label>
-            <select id="u-representante" value={representanteId} onChange={(e) => setRepresentanteId(e.target.value)}>
+            <select id="u-representante" value={representanteId} onChange={(e) => escolherRepresentante(e.target.value)}>
               <option value="">Escolha…</option>
               {representantes.map((r) => (
                 <option key={r.id} value={r.id}>
@@ -150,16 +201,27 @@ export function FormularioUsuario({ usuario, representantes, aoFechar, aoSalvar 
         </div>
         <div className="field">
           <label htmlFor="u-senha">{editando ? 'Nova senha' : 'Senha'}</label>
-          <input
-            id="u-senha"
-            type="password"
-            autoComplete="new-password"
-            placeholder={editando ? 'Em branco mantém a atual' : undefined}
-            value={senha}
-            onChange={(e) => setSenha(e.target.value)}
-          />
+          <div className="input-com-botao">
+            <input
+              id="u-senha"
+              type={senhaVisivel ? 'text' : 'password'}
+              autoComplete="new-password"
+              placeholder={editando ? 'Em branco mantém a atual' : undefined}
+              value={senha}
+              onChange={(e) => {
+                setSenha(e.target.value)
+                setSenhaVisivel(false)
+              }}
+            />
+            <button type="button" className="btn btn-sm" onClick={gerarSenha}>
+              Gerar
+            </button>
+          </div>
         </div>
       </div>
+      {senhaVisivel && senha ? (
+        <p className="hint warn">Anote ou copie a senha antes de salvar: depois ela não aparece mais.</p>
+      ) : null}
       {editando ? <p className="hint">O nome de usuário não muda depois de criado.</p> : null}
     </Modal>
   )

@@ -7,6 +7,7 @@ import type {
   ClienteCampanhaWellpet,
   ClienteEspecialistaPet,
   Fornecedor,
+  LoginGerado,
   Material,
   Meta,
   MetaRepresentante,
@@ -39,7 +40,9 @@ function achar<T extends { id: string }>(lista: T[], id: string): T {
 }
 
 let avatar: string | null = null
-let usuarios: UsuarioResumo[] = [{ usuario: 'admin', role: 'ADMIN' }]
+let usuarios: UsuarioResumo[] = [
+  { usuario: 'admin', role: 'ADMIN', ativo: true, ultimoAcesso: new Date().toISOString() },
+]
 
 let materiais: Material[] = [
   { id: novoId('mat'), nome: 'Furadeira de impacto', codigo: 'FER-014', estoque: 3, obs: 'Maleta com brocas no armário 2.' },
@@ -140,14 +143,17 @@ function comRepresentante(u: UsuarioResumo): UsuarioResumo {
   return { ...u, representanteNome: representantes.find((r) => r.id === u.representanteId)?.nome ?? null }
 }
 
-function aplicarDados(usuario: string, dados: DadosUsuario): UsuarioResumo {
+function aplicarDados(usuario: string, dados: DadosUsuario, anterior?: UsuarioResumo): UsuarioResumo {
   return {
+    ...anterior,
     usuario,
     ...dados,
     representanteId: dados.role === 'REPRESENTANTE' ? dados.representanteId : null,
     nome: dados.nome.trim() || null,
     sobrenome: dados.sobrenome.trim() || null,
     email: dados.email.trim() || null,
+    celular: dados.celular.trim() || null,
+    criadoEm: anterior?.criadoEm ?? new Date().toISOString(),
   }
 }
 
@@ -161,9 +167,50 @@ export function criarUsuario(usuario: string, dados: DadosUsuario): Promise<void
 }
 
 export function atualizarUsuario(usuario: string, dados: DadosUsuario): Promise<UsuarioResumo> {
-  const atualizado = aplicarDados(usuario, dados)
+  const atualizado = aplicarDados(usuario, dados, usuarios.find((u) => u.usuario === usuario))
   usuarios = usuarios.map((u) => (u.usuario === usuario ? atualizado : u))
   return Promise.resolve(comRepresentante(atualizado))
+}
+
+function senhaAleatoria(): string {
+  const alfabeto = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789'
+  return Array.from({ length: 8 }, () => alfabeto[Math.floor(Math.random() * alfabeto.length)]).join('')
+}
+
+export function gerarLoginsRepresentantes(representanteIds: string[]): Promise<LoginGerado[]> {
+  const comLogin = new Set(usuarios.map((u) => u.representanteId))
+  const alvos = representanteIds.length
+    ? representantes.filter((r) => representanteIds.includes(r.id))
+    : representantes.filter((r) => !comLogin.has(r.id))
+  return Promise.resolve(
+    alvos.map((r) => {
+      const partes = r.nome.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().split(/\s+/)
+      const base = partes.length > 1 ? `${partes[0]}.${partes[partes.length - 1]}` : partes[0]
+      let login = base
+      for (let n = 2; usuarios.some((u) => u.usuario === login); n++) login = `${base}${n}`
+      const [nome, ...resto] = r.nome.split(' ')
+      usuarios = [
+        ...usuarios,
+        {
+          usuario: login,
+          role: 'REPRESENTANTE',
+          representanteId: r.id,
+          nome,
+          sobrenome: resto.join(' ') || null,
+          email: r.email || null,
+          celular: r.celular || null,
+          ativo: true,
+          criadoEm: new Date().toISOString(),
+        },
+      ]
+      return { usuario: login, senha: senhaAleatoria(), nome, representanteId: r.id, representanteNome: r.nome, celular: r.celular, email: r.email }
+    }),
+  )
+}
+
+export function gerarNovaSenha(usuario: string): Promise<LoginGerado> {
+  const u = comRepresentante(usuarios.find((x) => x.usuario === usuario)!)
+  return Promise.resolve({ ...u, senha: senhaAleatoria() })
 }
 
 export function excluirUsuario(usuario: string): Promise<void> {

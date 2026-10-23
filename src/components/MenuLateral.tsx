@@ -17,6 +17,7 @@ interface Props {
   aba: AbaPrincipal
   isAdmin: boolean
   consultaMetas: boolean
+  veAlmoxarifado: boolean
   usuario: string
   avatar: string | null
   aoMudarAba: (aba: AbaPrincipal) => void
@@ -38,6 +39,7 @@ export function MenuLateral({
   aba,
   isAdmin,
   consultaMetas,
+  veAlmoxarifado,
   usuario,
   avatar,
   aoMudarAba,
@@ -81,16 +83,20 @@ export function MenuLateral({
 
   const secoes = [
     { aba: 'inicio' as const, rotulo: 'Início', icone: <IconeInicio />, subitens: [] },
-    {
-      aba: 'materiais' as const,
-      rotulo: 'Materiais',
-      icone: <IconeMateriais />,
-      subitens: SUBABAS_MATERIAIS.map((s) => ({
-        ...s,
-        ativo: subabaMateriais === s.valor,
-        escolher: () => aoMudarSubabaMateriais(s.valor),
-      })),
-    },
+    ...(veAlmoxarifado
+      ? [
+          {
+            aba: 'materiais' as const,
+            rotulo: 'Materiais',
+            icone: <IconeMateriais />,
+            subitens: SUBABAS_MATERIAIS.map((s) => ({
+              ...s,
+              ativo: subabaMateriais === s.valor,
+              escolher: () => aoMudarSubabaMateriais(s.valor),
+            })),
+          },
+        ]
+      : []),
     ...(consultaMetas
       ? [
           {
