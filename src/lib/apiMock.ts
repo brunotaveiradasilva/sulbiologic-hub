@@ -41,7 +41,7 @@ function achar<T extends { id: string }>(lista: T[], id: string): T {
 
 let avatar: string | null = null
 let usuarios: UsuarioResumo[] = [
-  { usuario: 'admin', role: 'ADMIN', ativo: true, ultimoAcesso: new Date().toISOString() },
+  { usuario: 'admin', role: 'ADMIN', nome: 'Ana', sobrenome: 'Exemplo', ativo: true, ultimoAcesso: new Date().toISOString() },
 ]
 
 let materiais: Material[] = [
@@ -133,10 +133,26 @@ const totaisVendidos: TotalVendidoMensal[] = [
 ]
 
 /** Entra com o perfil do login cadastrado (ADMIN se ele não existe). O mock não filtra os dados por representante. */
-export function login(usuario: string): Promise<{ token: string; usuario: string; role: Role; avatar: string | null }> {
-  const nome = usuario.trim() || 'admin'
-  const role = usuarios.find((u) => u.usuario.toLowerCase() === nome.toLowerCase())?.role ?? 'ADMIN'
-  return Promise.resolve({ token: 'mock-token', usuario: nome, role, avatar })
+export function login(
+  usuario: string,
+): Promise<{ token: string; usuario: string; role: Role; avatar: string | null; nome: string | null }> {
+  const login = usuario.trim() || 'admin'
+  const cadastrado = usuarios.find((u) => u.usuario.toLowerCase() === login.toLowerCase())
+  logado = cadastrado?.usuario ?? login
+  return Promise.resolve({
+    token: 'mock-token',
+    usuario: logado,
+    role: cadastrado?.role ?? 'ADMIN',
+    avatar,
+    nome: cadastrado?.nome ?? null,
+  })
+}
+
+let logado = 'admin'
+
+export function eu(): Promise<{ usuario: string; role: Role; avatar: string | null; nome: string | null }> {
+  const u = usuarios.find((x) => x.usuario === logado)
+  return Promise.resolve({ usuario: logado, role: u?.role ?? 'ADMIN', avatar, nome: u?.nome ?? null })
 }
 
 function comRepresentante(u: UsuarioResumo): UsuarioResumo {

@@ -26,6 +26,8 @@ import type { Agendamento, Filtro, Material } from '../types'
 
 interface Props {
   usuario: string
+  /** Nome cadastrado da pessoa (ou o login, se não tiver), pra saudação e menu. */
+  nomeExibido: string
   isAdmin: boolean
   /** Supervisor e representante também veem Metas e Campanhas, só pra consultar. */
   consultaMetas: boolean
@@ -47,6 +49,7 @@ const FILTROS: { valor: Filtro; rotulo: string }[] = [
 /** Tudo que só existe depois do login: só monta (e só busca dados da API) quem já está autenticado. */
 export function PainelAlmoxarifado({
   usuario,
+  nomeExibido,
   isAdmin,
   consultaMetas,
   veAlmoxarifado,
@@ -140,7 +143,7 @@ export function PainelAlmoxarifado({
 
         {aba === 'inicio' ? (
           <PaginaInicial
-            usuario={usuario}
+            nome={nomeExibido}
             isAdmin={isAdmin}
             consultaMetas={consultaMetas}
             veAlmoxarifado={veAlmoxarifado}
@@ -341,6 +344,7 @@ export function PainelAlmoxarifado({
         consultaMetas={consultaMetas}
         veAlmoxarifado={veAlmoxarifado}
         usuario={usuario}
+        nomeExibido={nomeExibido}
         avatar={avatar}
         aoMudarAba={setAba}
         subabaMateriais={subabaMateriais}
