@@ -21,7 +21,8 @@ export type Destino =
   | { aba: 'usuarios' }
 
 interface Props {
-  usuario: string
+  /** Nome da pessoa (ou o login, se não tiver nome cadastrado). */
+  nome: string
   isAdmin: boolean
   consultaMetas: boolean
   veAlmoxarifado: boolean
@@ -44,7 +45,7 @@ function saudacao(hora = new Date().getHours()) {
 }
 
 /** Tela de entrada: um cartão por seção do menu lateral, com atalho direto pra cada subaba. */
-export function PaginaInicial({ usuario, isAdmin, consultaMetas, veAlmoxarifado, resumo, aoAbrir }: Props) {
+export function PaginaInicial({ nome, isAdmin, consultaMetas, veAlmoxarifado, resumo, aoAbrir }: Props) {
   const cartoes: Cartao[] = [
     ...(veAlmoxarifado
       ? ([
@@ -111,7 +112,7 @@ export function PaginaInicial({ usuario, isAdmin, consultaMetas, veAlmoxarifado,
       <div className="view-head">
         <div>
           <h2>
-            {saudacao()}, {usuario}
+            {saudacao()}, {nome}
           </h2>
           <p>Escolha por onde começar. Tudo o que está no menu ao lado também está aqui.</p>
         </div>

@@ -16,12 +16,14 @@ export default function App() {
   return (
     <PainelAlmoxarifado
       usuario={auth.usuario}
+      nomeExibido={auth.nomeExibido ?? auth.usuario}
       isAdmin={auth.isAdmin}
       consultaMetas={auth.consultaMetas}
       veAlmoxarifado={auth.veAlmoxarifado}
       avatar={auth.avatar}
       aoSair={auth.sair}
       aoTrocarFoto={auth.trocarFoto}
+      aoSalvarDados={auth.atualizarMeusDados}
     />
   )
 }

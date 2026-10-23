@@ -22,10 +22,12 @@ import { PainelCampanhas } from './PainelCampanhas'
 import { PainelDados } from './PainelDados'
 import { MenuLateral, type AbaPrincipal } from './MenuLateral'
 import { PaginaInicial, type Destino } from './PaginaInicial'
-import type { Agendamento, Filtro, Material } from '../types'
+import type { Agendamento, Filtro, Material, MeuLogin, MeusDados } from '../types'
 
 interface Props {
   usuario: string
+  /** Nome cadastrado da pessoa (ou o login, se não tiver), pra saudação e menu. */
+  nomeExibido: string
   isAdmin: boolean
   /** Supervisor e representante também veem Metas e Campanhas, só pra consultar. */
   consultaMetas: boolean
@@ -34,6 +36,7 @@ interface Props {
   avatar: string | null
   aoSair: () => void
   aoTrocarFoto: (avatar: string | null) => Promise<void>
+  aoSalvarDados: (dados: MeusDados) => Promise<MeuLogin>
 }
 
 const FILTROS: { valor: Filtro; rotulo: string }[] = [
@@ -47,12 +50,14 @@ const FILTROS: { valor: Filtro; rotulo: string }[] = [
 /** Tudo que só existe depois do login: só monta (e só busca dados da API) quem já está autenticado. */
 export function PainelAlmoxarifado({
   usuario,
+  nomeExibido,
   isAdmin,
   consultaMetas,
   veAlmoxarifado,
   avatar,
   aoSair,
   aoTrocarFoto,
+  aoSalvarDados,
 }: Props) {
   const app = useAlmoxarifado(veAlmoxarifado)
 
@@ -79,7 +84,6 @@ export function PainelAlmoxarifado({
     material: null,
   })
 
-  const [dialogoConta, setDialogoConta] = useState(false)
 
   const primeiraCarga = app.carregando && !app.materiais.length && !app.agendamentos.length
 
@@ -140,7 +144,7 @@ export function PainelAlmoxarifado({
 
         {aba === 'inicio' ? (
           <PaginaInicial
-            usuario={usuario}
+            nome={nomeExibido}
             isAdmin={isAdmin}
             consultaMetas={consultaMetas}
             veAlmoxarifado={veAlmoxarifado}
@@ -157,6 +161,8 @@ export function PainelAlmoxarifado({
           <PainelDados subaba={subabaDados} aoMudarSubaba={setSubabaDados} />
         ) : aba === 'usuarios' ? (
           <PainelUsuarios usuarioAtual={usuario} />
+        ) : aba === 'conta' ? (
+          <MinhaConta avatar={avatar} aoTrocarFoto={aoTrocarFoto} aoSalvarDados={aoSalvarDados} />
         ) : (
           <section className="view" role="tabpanel">
             <div className="view-head">
@@ -341,6 +347,7 @@ export function PainelAlmoxarifado({
         consultaMetas={consultaMetas}
         veAlmoxarifado={veAlmoxarifado}
         usuario={usuario}
+        nomeExibido={nomeExibido}
         avatar={avatar}
         aoMudarAba={setAba}
         subabaMateriais={subabaMateriais}
@@ -352,7 +359,7 @@ export function PainelAlmoxarifado({
         subabaDados={subabaDados}
         aoMudarSubabaDados={setSubabaDados}
         aoAbrirUsuarios={() => setAba('usuarios')}
-        aoAbrirConta={() => setDialogoConta(true)}
+        aoAbrirConta={() => setAba('conta')}
         aoSair={aoSair}
       />
 
@@ -387,15 +394,6 @@ export function PainelAlmoxarifado({
           material={dialogoMaterial.material}
           aoFechar={() => setDialogoMaterial({ aberto: false, material: null })}
           aoSalvar={app.salvarMaterial}
-        />
-      ) : null}
-
-      {dialogoConta ? (
-        <MinhaConta
-          usuario={usuario}
-          avatar={avatar}
-          aoTrocarFoto={aoTrocarFoto}
-          aoFechar={() => setDialogoConta(false)}
         />
       ) : null}
 

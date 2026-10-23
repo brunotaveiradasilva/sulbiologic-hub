@@ -11,7 +11,8 @@ import {
   type SubabaMateriais,
 } from '../lib/navegacao'
 
-export type AbaPrincipal = 'inicio' | 'materiais' | 'metas' | 'campanhas' | 'dados' | 'usuarios'
+/** 'conta' (Minha conta) não aparece na lista do menu: abre pelo menu da foto, embaixo. */
+export type AbaPrincipal = 'inicio' | 'materiais' | 'metas' | 'campanhas' | 'dados' | 'usuarios' | 'conta'
 
 interface Props {
   aba: AbaPrincipal
@@ -19,6 +20,8 @@ interface Props {
   consultaMetas: boolean
   veAlmoxarifado: boolean
   usuario: string
+  /** Nome da pessoa (ou o login, se não tiver nome cadastrado). */
+  nomeExibido: string
   avatar: string | null
   aoMudarAba: (aba: AbaPrincipal) => void
   subabaMateriais: SubabaMateriais
@@ -41,6 +44,7 @@ export function MenuLateral({
   consultaMetas,
   veAlmoxarifado,
   usuario,
+  nomeExibido,
   avatar,
   aoMudarAba,
   subabaMateriais,
@@ -196,7 +200,10 @@ export function MenuLateral({
       <div className="menu-lateral-conta" ref={containerRef}>
         {aberto ? (
           <div className="menu-dropdown" role="menu">
-            <div className="menu-dropdown-usuario">{usuario}</div>
+            <div className="menu-dropdown-usuario">
+              {nomeExibido}
+              {nomeExibido !== usuario ? <span className="usuario-login">{usuario}</span> : null}
+            </div>
             <button
               type="button"
               role="menuitem"
@@ -241,9 +248,9 @@ export function MenuLateral({
           aria-expanded={aberto}
         >
           <span className="avatar-btn" aria-hidden="true">
-            {avatar ? <img src={avatar} alt="" /> : <span>{usuario.charAt(0).toUpperCase()}</span>}
+            {avatar ? <img src={avatar} alt="" /> : <span>{nomeExibido.charAt(0).toUpperCase()}</span>}
           </span>
-          <span className="menu-lateral-usuario">{usuario}</span>
+          <span className="menu-lateral-usuario">{nomeExibido}</span>
         </button>
       </div>
     </aside>

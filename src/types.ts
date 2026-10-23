@@ -25,6 +25,30 @@ export interface UsuarioResumo {
   ultimoAcesso?: string | null
 }
 
+/** O próprio login, como a página Minha conta mostra. representanteNome só vem pra REPRESENTANTE. */
+export interface MeuLogin {
+  usuario: string
+  role: Role
+  avatar: string | null
+  nome: string | null
+  sobrenome?: string | null
+  email?: string | null
+  celular?: string | null
+  /** AAAA-MM-DD */
+  dataNascimento?: string | null
+  representanteNome?: string | null
+}
+
+/** O que a própria pessoa edita em Minha conta (login e perfil só o admin muda). */
+export interface MeusDados {
+  nome: string
+  sobrenome: string
+  email: string
+  celular: string
+  /** AAAA-MM-DD, ou null se não informada. */
+  dataNascimento: string | null
+}
+
 /** Login com a senha em texto puro, que só existe na resposta de quem gerou — no banco fica só o hash. */
 export interface LoginGerado {
   usuario: string
