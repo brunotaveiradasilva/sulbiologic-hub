@@ -8,10 +8,12 @@ interface Props {
   aoMudarSubaba: (subaba: SubabaCampanhas) => void
   /** Só o admin importa e sincroniza; supervisor e representante só consultam. */
   isAdmin: boolean
+  /** Exceção: na Especialista Pet o supervisor também sincroniza. */
+  sincronizaEspecialistaPet: boolean
 }
 
 /** Campanhas comerciais. A navegação entre as subabas fica no menu lateral; as abas daqui só aparecem no celular. */
-export function PainelCampanhas({ subaba, aoMudarSubaba, isAdmin }: Props) {
+export function PainelCampanhas({ subaba, aoMudarSubaba, isAdmin, sincronizaEspecialistaPet }: Props) {
   return (
     <section className="view" role="tabpanel">
       <div className="view-head">
@@ -28,7 +30,7 @@ export function PainelCampanhas({ subaba, aoMudarSubaba, isAdmin }: Props) {
         ))}
       </nav>
 
-      {subaba === 'especialistaPet' ? <ConsultaEspecialistaPet podeEditar={isAdmin} /> : null}
+      {subaba === 'especialistaPet' ? <ConsultaEspecialistaPet podeEditar={isAdmin} podeSincronizar={sincronizaEspecialistaPet} /> : null}
       {subaba === 'wellpet' ? <ConsultaCampanhaWellpet podeEditar={isAdmin} /> : null}
       {subaba === 'organnact' ? <ConsultaCampanhaOrgannact podeEditar={isAdmin} /> : null}
     </section>

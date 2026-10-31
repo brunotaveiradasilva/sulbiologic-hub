@@ -35,10 +35,10 @@ function resumir(clientes: ClienteEspecialistaPet[]): Resumo {
 /**
  * Campanha Especialista Pet: metas por cliente vindas da planilha da PremieR (produto foco NATTU e
  * todos os SKUs, em kg) e o realizado da ADS, cliente a cliente — de todos os representantes ou só
- * de um, escolhido no filtro. Sem podeEditar (supervisor e representante), só consulta: sem importar
- * planilha nem sincronizar.
+ * de um, escolhido no filtro. Sem podeEditar (supervisor e representante), não importa planilha; sem
+ * podeSincronizar (representante), também não sincroniza.
  */
-export function ConsultaEspecialistaPet({ podeEditar }: { podeEditar: boolean }) {
+export function ConsultaEspecialistaPet({ podeEditar, podeSincronizar }: { podeEditar: boolean; podeSincronizar: boolean }) {
   const esp = useEspecialistaPet()
   const [mes, setMes] = useState(mesAtual)
   const [representante, setRepresentante] = useState(TODOS)
@@ -133,18 +133,18 @@ export function ConsultaEspecialistaPet({ podeEditar }: { podeEditar: boolean })
         <SeletorMes id="ep-mes" mes={mes} mesesComDados={mesesComDados} aoMudar={mudarMes} />
         <div className="consulta-acoes">
           {podeEditar ? (
-            <>
-              <button className="btn" disabled={esp.ocupado !== null} onClick={() => entradaArquivo.current?.click()}>
-                {esp.ocupado === 'importando' ? 'Importando…' : 'Importar planilha'}
-              </button>
-              <button
-                className="btn"
-                disabled={esp.ocupado !== null || !doMes.length}
-                onClick={() => esp.sincronizar(mes)}
-              >
-                {esp.ocupado === 'sincronizando' ? 'Sincronizando…' : 'Sincronizar com a ADS'}
-              </button>
-            </>
+            <button className="btn" disabled={esp.ocupado !== null} onClick={() => entradaArquivo.current?.click()}>
+              {esp.ocupado === 'importando' ? 'Importando…' : 'Importar planilha'}
+            </button>
+          ) : null}
+          {podeSincronizar ? (
+            <button
+              className="btn"
+              disabled={esp.ocupado !== null || !doMes.length}
+              onClick={() => esp.sincronizar(mes)}
+            >
+              {esp.ocupado === 'sincronizando' ? 'Sincronizando…' : 'Sincronizar com a ADS'}
+            </button>
           ) : null}
           <button
             className="btn"

@@ -87,6 +87,8 @@ export function useAuth() {
     /** Como chamar a pessoa na tela: o nome cadastrado, ou o login se não tiver nome. */
     nomeExibido: nome || usuario,
     isAdmin: role === 'ADMIN',
+    /** O supervisor também dispara a sincronização da Especialista Pet com a ADS (importar segue só do admin). */
+    sincronizaEspecialistaPet: role === 'ADMIN' || role === 'SUPERVISOR',
     /** Enxerga Metas e Campanhas (supervisor e representante só consultam). */
     consultaMetas: role === 'ADMIN' || role === 'SUPERVISOR' || role === 'REPRESENTANTE',
     /** Materiais e agendamentos: todo mundo menos o representante, que só vê as metas e campanhas dele. */
