@@ -29,6 +29,7 @@ interface Props {
   /** Nome cadastrado da pessoa (ou o login, se não tiver), pra saudação e menu. */
   nomeExibido: string
   isAdmin: boolean
+  sincronizaEspecialistaPet: boolean
   /** Supervisor e representante também veem Metas e Campanhas, só pra consultar. */
   consultaMetas: boolean
   /** Representante não vê Materiais (nem busca esses dados). */
@@ -52,6 +53,7 @@ export function PainelAlmoxarifado({
   usuario,
   nomeExibido,
   isAdmin,
+  sincronizaEspecialistaPet,
   consultaMetas,
   veAlmoxarifado,
   avatar,
@@ -156,7 +158,12 @@ export function PainelAlmoxarifado({
         ) : aba === 'metas' ? (
           <PainelMetas subaba={subabaMetas} aoMudarSubaba={setSubabaMetas} isAdmin={isAdmin} />
         ) : aba === 'campanhas' ? (
-          <PainelCampanhas subaba={subabaCampanhas} aoMudarSubaba={setSubabaCampanhas} isAdmin={isAdmin} />
+          <PainelCampanhas
+            subaba={subabaCampanhas}
+            aoMudarSubaba={setSubabaCampanhas}
+            isAdmin={isAdmin}
+            sincronizaEspecialistaPet={sincronizaEspecialistaPet}
+          />
         ) : aba === 'dados' ? (
           <PainelDados subaba={subabaDados} aoMudarSubaba={setSubabaDados} />
         ) : aba === 'usuarios' ? (
