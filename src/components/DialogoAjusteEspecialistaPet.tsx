@@ -10,27 +10,36 @@ interface Props {
 }
 
 const kg = (n: number) => n.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+const umaCasa = (n: number) => Math.round(n * 10) / 10
 
 /**
- * Lança à mão o kg de todos os SKUs de um cliente, no lugar do da ADS. O campo já vem com a meta, que
- * é o caso comum: dar o cliente como 100%. O desconto da tela e do PDF passa a sair desse kg.
+ * Lança à mão o resultado em kg de todos os SKUs de um cliente, no lugar do da ADS; a meta não muda. O
+ * desconto da tela e do PDF passa a sair desse kg. A meta da planilha tem mais casas do que a tela
+ * mostra, então digitar o número da tela (697,3 de uma meta de 697,344) conta como bater a meta.
  */
 export function DialogoAjusteEspecialistaPet({ cliente, aoFechar, aoSalvar }: Props) {
-  const [valor, setValor] = useState(String(cliente.realizadoTotalAjustado ?? cliente.metaTotal))
+  const metaNaTela = umaCasa(cliente.metaTotal)
+  const [valor, setValor] = useState(String(umaCasa(cliente.realizadoTotalAjustado ?? cliente.realizadoTotal)))
 
   function salvar(realizadoTotal: number | null) {
     aoSalvar(realizadoTotal)
     aoFechar()
   }
 
+  function confirmar() {
+    const digitado = Number(valor)
+    salvar(digitado === metaNaTela ? cliente.metaTotal : digitado)
+  }
+
   return (
-    <Modal titulo="Ajustar kg" textoConfirmar="Salvar ajuste" aoFechar={aoFechar} aoConfirmar={() => salvar(Number(valor))}>
+    <Modal titulo="Ajustar resultado" textoConfirmar="Salvar ajuste" aoFechar={aoFechar} aoConfirmar={confirmar}>
+      <p className="hint">{cliente.nome}</p>
       <p className="hint">
-        {cliente.nome}: {kg(cliente.realizadoTotal)} kg na ADS, meta de {kg(cliente.metaTotal)} kg.
+        Resultado na ADS: {kg(cliente.realizadoTotal)} kg. Meta: {kg(cliente.metaTotal)} kg (não muda).
       </p>
 
       <div className="field">
-        <label htmlFor="ep-ajuste-kg">Todos os SKUs (kg)</label>
+        <label htmlFor="ep-ajuste-kg">Resultado de todos os SKUs (kg)</label>
         <input
           id="ep-ajuste-kg"
           type="number"
@@ -41,11 +50,14 @@ export function DialogoAjusteEspecialistaPet({ cliente, aoFechar, aoSalvar }: Pr
           onChange={(e) => setValor(e.target.value)}
         />
         <p className="hint">
-          O desconto passa a sair desse kg, e todos que veem esse cliente enxergam o valor ajustado. A sincronização com
-          a ADS não muda o ajuste; importar de novo a planilha do mês apaga.
+          O desconto passa a sair desse resultado, e todos que veem esse cliente enxergam o valor ajustado. A
+          sincronização com a ADS não muda o ajuste; importar de novo a planilha do mês apaga.
         </p>
       </div>
 
+      <button type="button" className="btn btn-ghost btn-sm" onClick={() => setValor(String(metaNaTela))}>
+        Igualar à meta
+      </button>
       {cliente.realizadoTotalAjustado !== undefined ? (
         <button type="button" className="btn btn-ghost btn-sm" onClick={() => salvar(null)}>
           Remover ajuste

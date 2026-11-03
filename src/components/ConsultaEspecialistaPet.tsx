@@ -268,10 +268,10 @@ export function ConsultaEspecialistaPet({ podeEditar, podeSincronizar }: { podeE
                             {podeEditar ? (
                               <>
                                 {c.realizadoTotalAjustado !== undefined ? (
-                                  <span className="meta-em-reais">ajustado · ADS {kg(c.realizadoTotal)} kg</span>
+                                  <span className="meta-em-reais">resultado ajustado · ADS {kg(c.realizadoTotal)} kg</span>
                                 ) : null}
                                 <button className="btn btn-ghost btn-sm" onClick={() => setAjustando(c)}>
-                                  Ajustar kg
+                                  Ajustar resultado
                                 </button>
                               </>
                             ) : null}
