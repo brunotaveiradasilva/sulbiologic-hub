@@ -20,6 +20,11 @@ export interface DescontoEspecialistaPet {
   valor: number
 }
 
+/** Kg de todos os SKUs que vale pro cliente: o ajustado à mão, se tiver, senão o da ADS. */
+export function realizadoTotalEfetivo(c: ClienteEspecialistaPet): number {
+  return c.realizadoTotalAjustado ?? c.realizadoTotal
+}
+
 /** Desconto a mais no produto foco para quem comprou NATTU WILD no mês (Combo Wild). */
 const BONUS_WILD = 7
 
@@ -34,7 +39,7 @@ const BONUS_WILD = 7
  *   já tinha e independente das outras metas (ponderada 6% + 7% = 13%, numérica 12% + 7% = 19%).
  */
 export function descontoEspecialistaPet(c: ClienteEspecialistaPet): DescontoEspecialistaPet {
-  const bateuTotal = c.metaTotal > 0 && c.realizadoTotal >= c.metaTotal
+  const bateuTotal = c.metaTotal > 0 && realizadoTotalEfetivo(c) >= c.metaTotal
   const bateuFoco = c.metaFoco > 0 && c.realizadoFoco >= c.metaFoco
   const ponderada = normalizar(c.classificacao) === 'PONDERADA'
   const numerica = normalizar(c.classificacao) === 'NUMERICA'

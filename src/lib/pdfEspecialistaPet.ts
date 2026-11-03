@@ -1,6 +1,6 @@
 import { dataDeHojeParaArquivo, rotuloMes, rotuloMesCurto } from './mes'
 import { formatarValorMeta } from './unidadeMeta'
-import { descontoEspecialistaPet } from './especialistaPet'
+import { descontoEspecialistaPet, realizadoTotalEfetivo } from './especialistaPet'
 import { carregarLogo } from './pdfMetasRepresentante'
 import type { ClienteEspecialistaPet } from '../types'
 
@@ -57,7 +57,7 @@ export async function exportarPdfEspecialistaPet({ mes, representantes }: Dados)
     doc.text(`Especialista Pet · metas de ${rotuloMes(mes)}`, margem, topo + 6.5)
 
     // Os mesmos três números dos cards da tela.
-    const bateramTotal = clientes.filter((c) => c.metaTotal > 0 && c.realizadoTotal >= c.metaTotal).length
+    const bateramTotal = clientes.filter((c) => c.metaTotal > 0 && realizadoTotalEfetivo(c) >= c.metaTotal).length
     const bateramFoco = clientes.filter((c) => c.metaFoco > 0 && c.realizadoFoco >= c.metaFoco).length
     const desconto = clientes.reduce((soma, c) => soma + descontoEspecialistaPet(c).valor, 0)
     const kpis: [string, string][] = [
@@ -103,8 +103,8 @@ export async function exportarPdfEspecialistaPet({ mes, representantes }: Dados)
           kg(c.realizadoFoco),
           pct(c.metaFoco, c.realizadoFoco),
           kg(c.metaTotal),
-          kg(c.realizadoTotal),
-          pct(c.metaTotal, c.realizadoTotal),
+          kg(realizadoTotalEfetivo(c)),
+          pct(c.metaTotal, realizadoTotalEfetivo(c)),
           d.valor > 0 ? formatarValorMeta(d.valor, 'REAL') : '-',
         ]
       }),
@@ -132,7 +132,7 @@ export async function exportarPdfEspecialistaPet({ mes, representantes }: Dados)
         const c = ordenados[data.row.index]
         // Efetividade de quem bateu a meta em verde, como a barra completa na tela.
         if (data.column.index === 5 && c.metaFoco > 0 && c.realizadoFoco >= c.metaFoco) data.cell.styles.textColor = COR_BATEU
-        if (data.column.index === 8 && c.metaTotal > 0 && c.realizadoTotal >= c.metaTotal) data.cell.styles.textColor = COR_BATEU
+        if (data.column.index === 8 && c.metaTotal > 0 && realizadoTotalEfetivo(c) >= c.metaTotal) data.cell.styles.textColor = COR_BATEU
       },
       didDrawPage: () => {
         doc.setFontSize(8)

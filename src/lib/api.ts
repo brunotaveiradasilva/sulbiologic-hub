@@ -407,6 +407,12 @@ export function sincronizarEspecialistaPet(mes: string): Promise<ClienteEspecial
   return requisitar(`/api/especialista-pet/sincronizar?mes=${encodeURIComponent(mes)}`, { method: 'POST' })
 }
 
+/** Lança o kg de todos os SKUs à mão, no lugar do da ADS; null remove o ajuste. */
+export function ajustarEspecialistaPet(id: string, realizadoTotal: number | null): Promise<ClienteEspecialistaPet> {
+  if (MOCK) return mock.ajustarEspecialistaPet(id, realizadoTotal)
+  return requisitar(`/api/especialista-pet/${id}/ajuste`, { method: 'PUT', body: JSON.stringify({ realizadoTotal }) })
+}
+
 /** Quanto (0 a 100) já foi da sincronização em andamento do mês; null se ela não está rodando. */
 export async function progressoSincronizacaoEspecialistaPet(mes: string): Promise<number | null> {
   if (MOCK) return mock.progressoSincronizacaoEspecialistaPet(mes)

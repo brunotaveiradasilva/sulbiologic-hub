@@ -1,10 +1,11 @@
 import { useMemo, useRef, useState, type ChangeEvent } from 'react'
 import { CarregandoTelaInteira } from './CarregandoTelaInteira'
+import { DialogoAjusteEspecialistaPet } from './DialogoAjusteEspecialistaPet'
 import { DialogoImportarEspecialistaPet } from './DialogoImportarEspecialistaPet'
 import { EstadoVazio } from './EstadoVazio'
 import { SeletorMes } from './SeletorMes'
 import { useEspecialistaPet } from '../hooks/useEspecialistaPet'
-import { descontoEspecialistaPet, lerPlanilhaEspecialistaPet, mesDoNomeDaPlanilha } from '../lib/especialistaPet'
+import { descontoEspecialistaPet, lerPlanilhaEspecialistaPet, mesDoNomeDaPlanilha, realizadoTotalEfetivo } from '../lib/especialistaPet'
 import type { LinhaPlanilhaEspecialistaPet } from '../lib/api'
 import { mesAtual, rotuloMesCurto } from '../lib/mes'
 import { exportarPdfEspecialistaPet } from '../lib/pdfEspecialistaPet'
@@ -24,7 +25,7 @@ function resumir(clientes: ClienteEspecialistaPet[]): Resumo {
   return clientes.reduce<Resumo>(
     (r, c) => ({
       clientes: r.clientes + 1,
-      bateramTotal: r.bateramTotal + (c.metaTotal > 0 && c.realizadoTotal >= c.metaTotal ? 1 : 0),
+      bateramTotal: r.bateramTotal + (c.metaTotal > 0 && realizadoTotalEfetivo(c) >= c.metaTotal ? 1 : 0),
       bateramFoco: r.bateramFoco + (c.metaFoco > 0 && c.realizadoFoco >= c.metaFoco ? 1 : 0),
       desconto: r.desconto + descontoEspecialistaPet(c).valor,
     }),
@@ -44,6 +45,7 @@ export function ConsultaEspecialistaPet({ podeEditar, podeSincronizar }: { podeE
   const [representante, setRepresentante] = useState(TODOS)
   const [gerandoPdf, setGerandoPdf] = useState(false)
   const entradaArquivo = useRef<HTMLInputElement>(null)
+  const [ajustando, setAjustando] = useState<ClienteEspecialistaPet | null>(null)
   // Planilha já lida, esperando a escolha do mês no diálogo.
   const [importando, setImportando] = useState<{
     nomeArquivo: string
@@ -262,7 +264,17 @@ export function ConsultaEspecialistaPet({ podeEditar, podeSincronizar }: { podeE
                               : `${efetividadeFoco.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}%`}
                           </td>
                           <td className="num">
-                            <Progresso meta={c.metaTotal} realizado={c.realizadoTotal} />
+                            <Progresso meta={c.metaTotal} realizado={realizadoTotalEfetivo(c)} />
+                            {podeEditar ? (
+                              <>
+                                {c.realizadoTotalAjustado !== undefined ? (
+                                  <span className="meta-em-reais">ajustado · ADS {kg(c.realizadoTotal)} kg</span>
+                                ) : null}
+                                <button className="btn btn-ghost btn-sm" onClick={() => setAjustando(c)}>
+                                  Ajustar kg
+                                </button>
+                              </>
+                            ) : null}
                           </td>
                           <td className="num">
                             <ParteDesconto reais={desconto.reaisFoco} percentual={desconto.percentualFoco} valor={desconto.valorFoco} />
@@ -290,6 +302,14 @@ export function ConsultaEspecialistaPet({ podeEditar, podeSincronizar }: { podeE
 
       {esp.ocupado === 'sincronizando' ? (
         <CarregandoTelaInteira texto="Buscando as vendas do mês na ADS…" progresso={esp.progresso} />
+      ) : null}
+
+      {ajustando ? (
+        <DialogoAjusteEspecialistaPet
+          cliente={ajustando}
+          aoFechar={() => setAjustando(null)}
+          aoSalvar={(realizadoTotal) => esp.ajustar(ajustando.id, realizadoTotal)}
+        />
       ) : null}
 
       {importando ? (
