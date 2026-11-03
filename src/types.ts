@@ -210,6 +210,8 @@ export interface ClienteEspecialistaPet {
   realizadoFocoReais: number
   /** Só a linha NATTU WILD, em kg — parte de realizadoFoco. */
   realizadoFocoWild: number
+  /** Kg de todos os SKUs lançado à mão pelo admin, que vale no lugar de realizadoTotal; a API omite quando não tem ajuste. */
+  realizadoTotalAjustado?: number
 }
 
 /**

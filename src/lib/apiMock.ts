@@ -584,7 +584,7 @@ export function listarEspecialistaPet(): Promise<ClienteEspecialistaPet[]> {
 /** Como a API: a planilha nova substitui o mês inteiro, com realizado zerado. */
 export function importarEspecialistaPet(
   mes: string,
-  clientes: Omit<ClienteEspecialistaPet, 'id' | 'mes' | 'realizadoFoco' | 'realizadoTotal' | 'realizadoReais' | 'realizadoFocoReais' | 'realizadoFocoWild'>[],
+  clientes: Omit<ClienteEspecialistaPet, 'id' | 'mes' | 'realizadoFoco' | 'realizadoTotal' | 'realizadoReais' | 'realizadoFocoReais' | 'realizadoFocoWild' | 'realizadoTotalAjustado'>[],
 ): Promise<ClienteEspecialistaPet[]> {
   const novos = clientes.map((c) => ({
     ...c,
@@ -629,6 +629,11 @@ export function sincronizarEspecialistaPet(mes: string): Promise<ClienteEspecial
       }
     }, 500)
   })
+}
+
+export function ajustarEspecialistaPet(id: string, realizadoTotal: number | null): Promise<ClienteEspecialistaPet> {
+  especialistaPet = especialistaPet.map((c) => (c.id === id ? { ...c, realizadoTotalAjustado: realizadoTotal ?? undefined } : c))
+  return Promise.resolve(especialistaPet.find((c) => c.id === id)!)
 }
 
 const progressoEspecialistaPet = new Map<string, number>()

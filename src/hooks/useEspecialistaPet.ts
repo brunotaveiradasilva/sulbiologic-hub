@@ -86,5 +86,16 @@ export function useEspecialistaPet() {
     [substituirMes, sincronizar],
   )
 
-  return { clientes, carregando, ocupado, progresso, erro, setErro, tentarNovamente: carregar, importar, sincronizar }
+  /** Lança (ou remove, com null) o kg ajustado à mão de um cliente. */
+  const ajustar = useCallback(async (id: string, realizadoTotal: number | null) => {
+    setErro(null)
+    try {
+      const salvo = await api.ajustarEspecialistaPet(id, realizadoTotal)
+      setClientes((atual) => atual.map((c) => (c.id === id ? salvo : c)))
+    } catch (e) {
+      setErro(mensagemErro(e))
+    }
+  }, [])
+
+  return { clientes, carregando, ocupado, progresso, erro, setErro, tentarNovamente: carregar, importar, sincronizar, ajustar }
 }
