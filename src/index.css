@@ -235,7 +235,12 @@
   /* ---------- login ---------- */
   .login-page {
     min-height: 100vh; display: flex; align-items: center; justify-content: center;
-    padding: 22px; background: var(--ground);
+    padding: 22px;
+    /* Mesma cena nos dois temas. O tom de fundo é o topo do céu do SVG: no celular a imagem só ocupa a base. */
+    background: #0B1A36 url('./assets/login-pet.svg') center bottom / cover no-repeat;
+  }
+  @media (max-aspect-ratio: 1/1) {
+    .login-page { background-size: auto 45%; }
   }
   .login-card {
     width: 100%; max-width: 360px;
@@ -248,6 +253,13 @@
   .login-brand .sub { display: block; margin-top: 4px; font-size: 13px; color: var(--ink-3); }
   .login-erro { margin: 0; font-size: 13px; color: var(--st-atrasado); }
   .login-submit { width: 100%; justify-content: center; }
+  /* O .35 padrão de botão desabilitado apagaria o spinner. */
+  .btn.login-submit:disabled { opacity: .8; }
+  .login-spinner {
+    width: 14px; height: 14px; border-radius: 50%;
+    border: 2px solid currentColor; border-top-color: transparent;
+    animation: girar .8s linear infinite;
+  }
 
   /* ---------- layout ---------- */
   main { max-width: 1120px; margin: 0 auto; padding: 44px 22px 96px; }

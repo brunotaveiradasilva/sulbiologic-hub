@@ -50,7 +50,14 @@ export function TelaLogin({ entrando, erro, aoEntrar }: Props) {
         {erro ? <p className="msg login-erro">{erro}</p> : null}
 
         <button className="btn btn-primary login-submit" type="submit" disabled={entrando}>
-          {entrando ? 'Entrando…' : 'Entrar'}
+          {entrando ? (
+            <>
+              <span className="login-spinner" aria-hidden="true" />
+              Entrando…
+            </>
+          ) : (
+            'Entrar'
+          )}
         </button>
       </form>
     </div>
