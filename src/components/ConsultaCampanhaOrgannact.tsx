@@ -3,13 +3,13 @@ import { CarregandoTelaInteira } from './CarregandoTelaInteira'
 import { EstadoVazio } from './EstadoVazio'
 import { SeletorMes } from './SeletorMes'
 import { useCampanhaOrgannact } from '../hooks/useCampanhaPositivacao'
-import { formatarData } from '../lib/datas'
+import { SEMANAS, detalheCliente, reaisDaSemana, rotuloDias } from '../lib/campanhaOrgannact'
 import { mesAtual, rotuloMes, rotuloMesCurto } from '../lib/mes'
+import { exportarPdfCampanhaOrgannact } from '../lib/pdfCampanhaOrgannact'
 import { formatarValorMeta } from '../lib/unidadeMeta'
 import type { ClienteCampanhaOrgannact } from '../types'
 
 const TODOS = ''
-const SEMANAS = [1, 2, 3, 4] as const
 
 /** 'todos', 'faltam' ou a semana em que positivou ('1' a '4'). */
 type Situacao = 'todos' | 'faltam' | '1' | '2' | '3' | '4'
@@ -20,24 +20,6 @@ function resumir(clientes: ClienteCampanhaOrgannact[]) {
     positivados: clientes.filter((c) => c.positivado).length,
     reais: clientes.reduce((s, c) => s + (c.positivado ? c.organnactReais : 0), 0),
   }
-}
-
-/** Dias da semana do mês: 1–7, 8–14, 15–21 e 22 até o último dia. */
-function diasDaSemana(mes: string, semana: number): { inicio: string; fim: string } {
-  const [ano, m] = mes.split('-').map(Number)
-  const ultimoDia = new Date(ano, m, 0).getDate()
-  const dia = (d: number) => `${mes}-${String(d).padStart(2, '0')}`
-  return { inicio: dia(1 + 7 * (semana - 1)), fim: dia(semana === 4 ? ultimoDia : 7 * semana) }
-}
-
-/** "1–7/10" */
-function rotuloDias(mes: string, semana: number): string {
-  const { inicio, fim } = diasDaSemana(mes, semana)
-  return `${Number(inicio.slice(8))}–${Number(fim.slice(8))}/${mes.slice(5)}`
-}
-
-function reaisDaSemana(c: ClienteCampanhaOrgannact, semana: number): number {
-  return [c.semana1Reais, c.semana2Reais, c.semana3Reais, c.semana4Reais][semana - 1]
 }
 
 /** Maiúsculas e sem acento, pra busca por nome não depender de como foi digitado. */
@@ -60,6 +42,7 @@ export function ConsultaCampanhaOrgannact({ podeEditar }: { podeEditar: boolean 
   const [representante, setRepresentante] = useState(TODOS)
   const [situacao, setSituacao] = useState<Situacao>('todos')
   const [busca, setBusca] = useState('')
+  const [gerandoPdf, setGerandoPdf] = useState(false)
 
   const doMes = useMemo(() => camp.clientes.filter((c) => c.mes === mes), [camp.clientes, mes])
   const mesesComDados = useMemo(() => [...new Set(camp.clientes.map((c) => c.mes))], [camp.clientes])
@@ -106,6 +89,33 @@ export function ConsultaCampanhaOrgannact({ podeEditar }: { podeEditar: boolean 
     setRepresentante(TODOS)
   }
 
+  /** O que a grade está mostrando (representante, situação e busca), um representante por página. */
+  async function exportarPdf() {
+    const escolhidos = representante === TODOS ? representantes : [representante]
+    const filtros = [
+      situacao === 'faltam' ? 'ainda faltam' : situacao === 'todos' ? '' : `positivaram na semana ${situacao}`,
+      busca.trim() ? `busca "${busca.trim()}"` : '',
+    ].filter(Boolean)
+    setGerandoPdf(true)
+    try {
+      await exportarPdfCampanhaOrgannact({
+        mes,
+        filtro: filtros.join(' · ') || null,
+        representantes: escolhidos
+          .map((nome) => ({
+            nome,
+            carteira: doMes.filter((c) => c.representante === nome),
+            linhas: gradeVisivel.filter((c) => c.representante === nome),
+          }))
+          .filter((r) => r.linhas.length),
+      })
+    } catch {
+      window.alert('Não deu pra gerar o PDF. Tente de novo.')
+    } finally {
+      setGerandoPdf(false)
+    }
+  }
+
   return (
     <div>
       {camp.erro ? (
@@ -130,16 +140,26 @@ export function ConsultaCampanhaOrgannact({ podeEditar }: { podeEditar: boolean 
           </select>
         </div>
         <SeletorMes id="org-mes" mes={mes} mesesComDados={mesesComDados} aoMudar={mudarMes} />
-        {podeEditar ? (
-          <div className="consulta-acoes">
-            <button className="btn" disabled={camp.ocupado !== null} onClick={montar}>
-              {camp.ocupado === 'montando' ? 'Montando…' : doMes.length ? 'Refazer lista' : 'Montar lista'}
-            </button>
-            <button className="btn" disabled={camp.ocupado !== null || !doMes.length} onClick={() => camp.sincronizar(mes)}>
-              {camp.ocupado === 'sincronizando' ? 'Sincronizando…' : 'Sincronizar com a ADS'}
-            </button>
-          </div>
-        ) : null}
+        <div className="consulta-acoes">
+          {podeEditar ? (
+            <>
+              <button className="btn" disabled={camp.ocupado !== null} onClick={montar}>
+                {camp.ocupado === 'montando' ? 'Montando…' : doMes.length ? 'Refazer lista' : 'Montar lista'}
+              </button>
+              <button className="btn" disabled={camp.ocupado !== null || !doMes.length} onClick={() => camp.sincronizar(mes)}>
+                {camp.ocupado === 'sincronizando' ? 'Sincronizando…' : 'Sincronizar com a ADS'}
+              </button>
+            </>
+          ) : null}
+          <button
+            className="btn"
+            disabled={gerandoPdf || !gradeVisivel.length}
+            title={representante === TODOS ? 'Um representante por página' : undefined}
+            onClick={exportarPdf}
+          >
+            {gerandoPdf ? 'Gerando PDF…' : 'Exportar PDF'}
+          </button>
+        </div>
       </div>
 
       {camp.carregando && !camp.clientes.length ? (
@@ -303,20 +323,7 @@ function Cliente({ cliente: c }: { cliente: ClienteCampanhaOrgannact }) {
   return (
     <td className="cell-material">
       {c.nome}
-      <span className="meta-em-reais">
-        {c.codigoCliente}
-        {c.segmento ? ` · ${c.segmento.toLowerCase()}` : ''}
-        {c.positivado
-          ? ` · 1ª compra ${c.primeiraCompra ? formatarData(c.primeiraCompra) : '—'}`
-          : ` · ${documento(c.cnpjCpf)} · últ. compra ${c.ultimaCompra ? formatarData(c.ultimaCompra) : '—'}`}
-      </span>
+      <span className="meta-em-reais">{detalheCliente(c)}</span>
     </td>
   )
-}
-
-/** "06423246114" -> "064.232.461-14"; CNPJ com a máscara dele; outro formato fica como veio. */
-function documento(s: string): string {
-  if (/^\d{11}$/.test(s)) return s.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
-  if (/^\d{14}$/.test(s)) return s.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')
-  return s || '—'
 }
