@@ -2,12 +2,14 @@ import { useMemo, useState } from 'react'
 import { useAlmoxarifado } from '../hooks/useAlmoxarifado'
 import { calcularResumo, filtrarAgendamentos } from '../lib/regras'
 import {
-  SUBABAS_MATERIAIS,
+  subabasCadastros,
+  type SubabaCadastros,
   type SubabaCampanhas,
   type SubabaDados,
-  type SubabaMateriais,
   type SubabaMetas,
 } from '../lib/navegacao'
+import { AbasCadastros } from './AbasCadastros'
+import { CadastrosMetas } from './CadastrosMetas'
 import { PainelResumo } from './PainelResumo'
 import { EstadoVazio } from './EstadoVazio'
 import { TabelaAgendamentos } from './TabelaAgendamentos'
@@ -64,11 +66,12 @@ export function PainelAlmoxarifado({
   const app = useAlmoxarifado(veAlmoxarifado)
 
   const [aba, setAba] = useState<AbaPrincipal>('inicio')
-  const [subabaMateriais, setSubabaMateriais] = useState<SubabaMateriais>('agendamentos')
-  // Os cadastros (fornecedores, representantes, metas) são só do admin: os outros começam na consulta.
-  const [subabaMetas, setSubabaMetas] = useState<SubabaMetas>(isAdmin ? 'fornecedores' : 'porRepresentante')
+  const [subabaMetas, setSubabaMetas] = useState<SubabaMetas>('porRepresentante')
   const [subabaCampanhas, setSubabaCampanhas] = useState<SubabaCampanhas>('especialistaPet')
   const [subabaDados, setSubabaDados] = useState<SubabaDados>('comparativo')
+  const [subabaCadastros, setSubabaCadastros] = useState<SubabaCadastros>(
+    () => subabasCadastros(isAdmin, veAlmoxarifado)[0]?.valor ?? 'materiais',
+  )
   const [filtro, setFiltro] = useState<Filtro>('todos')
   const [buscaAgenda, setBuscaAgenda] = useState('')
   const [buscaMaterial, setBuscaMaterial] = useState('')
@@ -108,8 +111,8 @@ export function PainelAlmoxarifado({
 
   function abrirAgendamento(agendamento: Agendamento | null, materialInicial?: string) {
     if (!app.materiais.length) {
-      setAba('materiais')
-      setSubabaMateriais('cadastro')
+      setAba('cadastros')
+      setSubabaCadastros('materiais')
       setDialogoMaterial({ aberto: true, material: null })
       return
     }
@@ -118,12 +121,26 @@ export function PainelAlmoxarifado({
 
   /** Atalho da página inicial: vai pra seção já na subaba escolhida. */
   function abrirDestino(destino: Destino) {
-    if (destino.aba === 'materiais') setSubabaMateriais(destino.subaba)
-    else if (destino.aba === 'metas') setSubabaMetas(destino.subaba)
+    if (destino.aba === 'metas') setSubabaMetas(destino.subaba)
     else if (destino.aba === 'campanhas') setSubabaCampanhas(destino.subaba)
     else if (destino.aba === 'dados') setSubabaDados(destino.subaba)
+    else if (destino.aba === 'cadastros') setSubabaCadastros(destino.subaba)
     setAba(destino.aba)
   }
+
+  function abrirCadastro(subaba: SubabaCadastros) {
+    setSubabaCadastros(subaba)
+    setAba('cadastros')
+  }
+
+  const abasCadastros = (
+    <AbasCadastros
+      subaba={subabaCadastros}
+      aoMudarSubaba={setSubabaCadastros}
+      isAdmin={isAdmin}
+      veAlmoxarifado={veAlmoxarifado}
+    />
+  )
 
   function excluirMaterial(material: Material) {
     const usos = app.agendamentos.filter((a) => a.materialId === material.id).length
@@ -166,8 +183,11 @@ export function PainelAlmoxarifado({
           />
         ) : aba === 'dados' ? (
           <PainelDados subaba={subabaDados} aoMudarSubaba={setSubabaDados} />
-        ) : aba === 'usuarios' ? (
-          <PainelUsuarios usuarioAtual={usuario} />
+        ) : aba === 'cadastros' && subabaCadastros === 'usuarios' ? (
+          <PainelUsuarios usuarioAtual={usuario} abas={abasCadastros} />
+        ) : aba === 'cadastros' &&
+          (subabaCadastros === 'fornecedores' || subabaCadastros === 'representantes' || subabaCadastros === 'metas') ? (
+          <CadastrosMetas subaba={subabaCadastros} abas={abasCadastros} />
         ) : aba === 'conta' ? (
           <MinhaConta avatar={avatar} aoTrocarFoto={aoTrocarFoto} aoSalvarDados={aoSalvarDados} />
         ) : (
@@ -176,11 +196,12 @@ export function PainelAlmoxarifado({
               <div>
                 <h2>Materiais</h2>
                 <p>
-                  Quem levou o quê e o que existe no estoque para retirar. Itens com devolução vencida sobem
-                  marcados como atrasados.
+                  {aba === 'materiais'
+                    ? 'Quem levou o quê e quando devolve. Itens com devolução vencida sobem marcados como atrasados.'
+                    : 'O que existe no almoxarifado para retirar, com a quantidade em estoque.'}
                 </p>
               </div>
-              {subabaMateriais === 'agendamentos' ? (
+              {aba === 'materiais' ? (
                 <button className="btn btn-primary" onClick={() => abrirAgendamento(null)}>
                   + Novo agendamento
                 </button>
@@ -194,21 +215,9 @@ export function PainelAlmoxarifado({
               )}
             </div>
 
-            {/* A navegação entre as subabas fica no menu lateral; essas abas só aparecem no celular. */}
-            <nav className="tabs tabs-so-celular" role="tablist">
-              {SUBABAS_MATERIAIS.map((s) => (
-                <button
-                  key={s.valor}
-                  role="tab"
-                  aria-selected={subabaMateriais === s.valor}
-                  onClick={() => setSubabaMateriais(s.valor)}
-                >
-                  {s.rotulo}
-                </button>
-              ))}
-            </nav>
+            {aba === 'cadastros' ? abasCadastros : null}
 
-            {subabaMateriais === 'agendamentos' ? (
+            {aba === 'materiais' ? (
               <>
                 <PainelResumo resumo={resumo} />
 
@@ -306,7 +315,7 @@ export function PainelAlmoxarifado({
                       materiais={materiaisVisiveis}
                       agendamentos={app.agendamentos}
                       aoAgendar={(materialId) => {
-                        setSubabaMateriais('agendamentos')
+                        setAba('materiais')
                         abrirAgendamento(null, materialId)
                       }}
                       aoEditar={(material) => setDialogoMaterial({ aberto: true, material })}
@@ -340,7 +349,7 @@ export function PainelAlmoxarifado({
           </section>
         )}
 
-        {aba === 'materiais' ? (
+        {aba === 'materiais' || (aba === 'cadastros' && subabaCadastros === 'materiais') ? (
           <footer className="foot">
             {app.materiais.length} material(is) cadastrado(s) · {app.agendamentos.length} agendamento(s). Os dados
             ficam no servidor — acessíveis de qualquer computador.
@@ -357,15 +366,15 @@ export function PainelAlmoxarifado({
         nomeExibido={nomeExibido}
         avatar={avatar}
         aoMudarAba={setAba}
-        subabaMateriais={subabaMateriais}
-        aoMudarSubabaMateriais={setSubabaMateriais}
         subabaMetas={subabaMetas}
         aoMudarSubabaMetas={setSubabaMetas}
         subabaCampanhas={subabaCampanhas}
         aoMudarSubabaCampanhas={setSubabaCampanhas}
         subabaDados={subabaDados}
         aoMudarSubabaDados={setSubabaDados}
-        aoAbrirUsuarios={() => setAba('usuarios')}
+        subabaCadastros={subabaCadastros}
+        aoMudarSubabaCadastros={setSubabaCadastros}
+        aoAbrirUsuarios={() => abrirCadastro('usuarios')}
         aoAbrirConta={() => setAba('conta')}
         aoSair={aoSair}
       />
