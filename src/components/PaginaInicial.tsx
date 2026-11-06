@@ -1,24 +1,24 @@
 import type { ReactNode } from 'react'
-import { IconeCampanhas, IconeDados, IconeMateriais, IconeMetas, IconeUsuarios } from './IconesMenu'
+import { IconeCadastros, IconeCampanhas, IconeDados, IconeMateriais, IconeMetas } from './IconesMenu'
 import {
   SUBABAS_CAMPANHAS,
   SUBABAS_DADOS,
-  SUBABAS_MATERIAIS,
-  subabasMetas,
+  SUBABAS_METAS,
+  subabasCadastros,
+  type SubabaCadastros,
   type SubabaMetas,
   type SubabaCampanhas,
   type SubabaDados,
-  type SubabaMateriais,
 } from '../lib/navegacao'
 import type { Resumo } from '../types'
 
 /** Para onde um atalho da página inicial leva: a seção do menu e a subaba dela. */
 export type Destino =
-  | { aba: 'materiais'; subaba: SubabaMateriais }
+  | { aba: 'materiais' }
   | { aba: 'metas'; subaba: SubabaMetas }
   | { aba: 'campanhas'; subaba: SubabaCampanhas }
   | { aba: 'dados'; subaba: SubabaDados }
-  | { aba: 'usuarios' }
+  | { aba: 'cadastros'; subaba: SubabaCadastros }
 
 interface Props {
   /** Nome da pessoa (ou o login, se não tiver nome cadastrado). */
@@ -46,15 +46,16 @@ function saudacao(hora = new Date().getHours()) {
 
 /** Tela de entrada: um cartão por seção do menu lateral, com atalho direto pra cada subaba. */
 export function PaginaInicial({ nome, isAdmin, consultaMetas, veAlmoxarifado, resumo, aoAbrir }: Props) {
+  const cadastros = subabasCadastros(isAdmin, veAlmoxarifado)
   const cartoes: Cartao[] = [
     ...(veAlmoxarifado
       ? ([
           {
             chave: 'materiais',
             titulo: 'Materiais',
-            descricao: 'Retiradas e devoluções do almoxarifado, com o cadastro do que existe em estoque.',
+            descricao: 'Retiradas e devoluções do almoxarifado: quem levou o quê e quando volta.',
             icone: <IconeMateriais />,
-            atalhos: SUBABAS_MATERIAIS.map((s) => ({ rotulo: s.rotulo, destino: { aba: 'materiais', subaba: s.valor } })),
+            atalhos: [{ rotulo: 'Agendamentos', destino: { aba: 'materiais' } }],
           },
         ] satisfies Cartao[])
       : []),
@@ -63,11 +64,9 @@ export function PaginaInicial({ nome, isAdmin, consultaMetas, veAlmoxarifado, re
           {
             chave: 'metas',
             titulo: 'Metas',
-            descricao: isAdmin
-              ? 'Fornecedores, representantes e as metas de cada um, com o acompanhamento do mês.'
-              : 'As metas do mês e quanto já foi realizado.',
+            descricao: 'As metas do mês e quanto já foi realizado, por representante e por fornecedor.',
             icone: <IconeMetas />,
-            atalhos: subabasMetas(isAdmin).map((s) => ({ rotulo: s.rotulo, destino: { aba: 'metas', subaba: s.valor } })),
+            atalhos: SUBABAS_METAS.map((s) => ({ rotulo: s.rotulo, destino: { aba: 'metas', subaba: s.valor } })),
           },
           {
             chave: 'campanhas',
@@ -90,12 +89,18 @@ export function PaginaInicial({ nome, isAdmin, consultaMetas, veAlmoxarifado, re
             icone: <IconeDados />,
             atalhos: SUBABAS_DADOS.map((s) => ({ rotulo: s.rotulo, destino: { aba: 'dados', subaba: s.valor } })),
           },
+        ] satisfies Cartao[])
+      : []),
+    ...(cadastros.length
+      ? ([
           {
-            chave: 'usuarios',
-            titulo: 'Usuários',
-            descricao: 'Quem entra no sistema, com o perfil e os dados de cada um.',
-            icone: <IconeUsuarios />,
-            atalhos: [{ rotulo: 'Usuários', destino: { aba: 'usuarios' } }],
+            chave: 'cadastros',
+            titulo: 'Cadastros',
+            descricao: isAdmin
+              ? 'Tudo o que se cadastra no sistema, num lugar só: materiais, fornecedores, representantes, metas e usuários.'
+              : 'Os materiais do almoxarifado que podem ser retirados.',
+            icone: <IconeCadastros />,
+            atalhos: cadastros.map((s) => ({ rotulo: s.rotulo, destino: { aba: 'cadastros', subaba: s.valor } })),
           },
         ] satisfies Cartao[])
       : []),

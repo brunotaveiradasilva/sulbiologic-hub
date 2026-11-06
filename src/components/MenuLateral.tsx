@@ -1,18 +1,18 @@
 import { Fragment, useEffect, useRef, useState, type CSSProperties } from 'react'
-import { IconeCampanhas, IconeDados, IconeInicio, IconeMateriais, IconeMetas, IconeUsuarios } from './IconesMenu'
+import { IconeCadastros, IconeCampanhas, IconeDados, IconeInicio, IconeMateriais, IconeMetas } from './IconesMenu'
 import {
   SUBABAS_CAMPANHAS,
   SUBABAS_DADOS,
-  SUBABAS_MATERIAIS,
-  subabasMetas,
+  SUBABAS_METAS,
+  subabasCadastros,
+  type SubabaCadastros,
   type SubabaMetas,
   type SubabaCampanhas,
   type SubabaDados,
-  type SubabaMateriais,
 } from '../lib/navegacao'
 
 /** 'conta' (Minha conta) não aparece na lista do menu: abre pelo menu da foto, embaixo. */
-export type AbaPrincipal = 'inicio' | 'materiais' | 'metas' | 'campanhas' | 'dados' | 'usuarios' | 'conta'
+export type AbaPrincipal = 'inicio' | 'materiais' | 'metas' | 'campanhas' | 'dados' | 'cadastros' | 'conta'
 
 interface Props {
   aba: AbaPrincipal
@@ -24,14 +24,14 @@ interface Props {
   nomeExibido: string
   avatar: string | null
   aoMudarAba: (aba: AbaPrincipal) => void
-  subabaMateriais: SubabaMateriais
-  aoMudarSubabaMateriais: (subaba: SubabaMateriais) => void
   subabaMetas: SubabaMetas
   aoMudarSubabaMetas: (subaba: SubabaMetas) => void
   subabaCampanhas: SubabaCampanhas
   aoMudarSubabaCampanhas: (subaba: SubabaCampanhas) => void
   subabaDados: SubabaDados
   aoMudarSubabaDados: (subaba: SubabaDados) => void
+  subabaCadastros: SubabaCadastros
+  aoMudarSubabaCadastros: (subaba: SubabaCadastros) => void
   aoAbrirUsuarios: () => void
   aoAbrirConta: () => void
   aoSair: () => void
@@ -47,14 +47,14 @@ export function MenuLateral({
   nomeExibido,
   avatar,
   aoMudarAba,
-  subabaMateriais,
-  aoMudarSubabaMateriais,
   subabaMetas,
   aoMudarSubabaMetas,
   subabaCampanhas,
   aoMudarSubabaCampanhas,
   subabaDados,
   aoMudarSubabaDados,
+  subabaCadastros,
+  aoMudarSubabaCadastros,
   aoAbrirUsuarios,
   aoAbrirConta,
   aoSair,
@@ -85,6 +85,7 @@ export function MenuLateral({
     aoMudarAba(destino)
   }
 
+  const cadastros = subabasCadastros(isAdmin, veAlmoxarifado)
   const secoes = [
     { aba: 'inicio' as const, rotulo: 'Início', icone: <IconeInicio />, subitens: [] },
     ...(veAlmoxarifado
@@ -93,11 +94,7 @@ export function MenuLateral({
             aba: 'materiais' as const,
             rotulo: 'Materiais',
             icone: <IconeMateriais />,
-            subitens: SUBABAS_MATERIAIS.map((s) => ({
-              ...s,
-              ativo: subabaMateriais === s.valor,
-              escolher: () => aoMudarSubabaMateriais(s.valor),
-            })),
+            subitens: [],
           },
         ]
       : []),
@@ -107,7 +104,7 @@ export function MenuLateral({
             aba: 'metas' as const,
             rotulo: 'Metas',
             icone: <IconeMetas />,
-            subitens: subabasMetas(isAdmin).map((s) => ({
+            subitens: SUBABAS_METAS.map((s) => ({
               ...s,
               ativo: subabaMetas === s.valor,
               escolher: () => aoMudarSubabaMetas(s.valor),
@@ -137,7 +134,20 @@ export function MenuLateral({
               escolher: () => aoMudarSubabaDados(s.valor),
             })),
           },
-          { aba: 'usuarios' as const, rotulo: 'Usuários', icone: <IconeUsuarios />, subitens: [] },
+        ]
+      : []),
+    ...(cadastros.length
+      ? [
+          {
+            aba: 'cadastros' as const,
+            rotulo: 'Cadastros',
+            icone: <IconeCadastros />,
+            subitens: cadastros.map((s) => ({
+              ...s,
+              ativo: subabaCadastros === s.valor,
+              escolher: () => aoMudarSubabaCadastros(s.valor),
+            })),
+          },
         ]
       : []),
   ]

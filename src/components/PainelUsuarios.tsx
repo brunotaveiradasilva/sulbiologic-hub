@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import {
   atualizarUsuario,
   criarUsuario,
@@ -20,6 +20,8 @@ import type { LoginGerado, Representante, Role, UsuarioResumo } from '../types'
 
 interface Props {
   usuarioAtual: string
+  /** Abas entre os cadastros, pro celular. */
+  abas?: ReactNode
 }
 
 type FiltroUsuarios = 'todos' | Role | 'desativados'
@@ -47,7 +49,7 @@ function quando(iso: string): string {
 }
 
 /** Página de Usuários (só admin): os logins com perfil e dados da pessoa, pra criar, editar e excluir. */
-export function PainelUsuarios({ usuarioAtual }: Props) {
+export function PainelUsuarios({ usuarioAtual, abas }: Props) {
   const [usuarios, setUsuarios] = useState<UsuarioResumo[]>([])
   const [representantes, setRepresentantes] = useState<Representante[]>([])
   const [carregando, setCarregando] = useState(true)
@@ -176,6 +178,8 @@ export function PainelUsuarios({ usuarioAtual }: Props) {
           </button>
         </div>
       ) : null}
+
+      {abas}
 
       <div className="toolbar">
         <input

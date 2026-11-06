@@ -49,6 +49,18 @@ export function IconeInicio() {
   )
 }
 
+export function IconeCadastros() {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="5" y="3.5" width="14" height="17" rx="2" />
+      <path d="M9 3.5v2h6v-2" />
+      <path d="M8.5 10h7" />
+      <path d="M8.5 13.5h7" />
+      <path d="M8.5 17h4" />
+    </svg>
+  )
+}
+
 export function IconeUsuarios() {
   return (
     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
