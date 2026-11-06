@@ -378,7 +378,10 @@ export function buscarVendasPeriodo(inicio: string, fim: string, filtros: Filtro
 
 /** Uma linha da aba CNPJ da planilha da PremieR, como vai pra API na importação. */
 export interface LinhaPlanilhaEspecialistaPet {
-  codigoCliente: string
+  /** Coluna CÓDIGO (id da ADS). A planilha de outubro/2026 em diante só traz o CNPJ — a API acha o código por ele. */
+  codigoCliente?: string
+  /** Coluna IDCLIENTE (CPF/CNPJ, às vezes sem os zeros à esquerda que o Excel come). */
+  cnpj?: string
   nome: string
   representante: string
   classificacao: string

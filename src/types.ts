@@ -191,8 +191,13 @@ export interface ClienteEspecialistaPet {
   id: string
   /** "2026-09" */
   mes: string
-  /** Id do cliente na ADS (coluna CÓDIGO da planilha). */
+  /**
+   * Id do cliente na ADS: a coluna CÓDIGO da planilha ou o achado pelo CNPJ no cadastro da ADS. Se o
+   * CNPJ não está no cadastro, fica o próprio CNPJ.
+   */
   codigoCliente: string
+  /** CPF/CNPJ só com dígitos, quando a planilha traz (coluna IDCLIENTE). */
+  cnpj?: string | null
   nome: string
   /** Nome como veio na coluna VENDEDOR da planilha — não é ligado ao cadastro de representantes. */
   representante: string

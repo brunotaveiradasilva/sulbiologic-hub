@@ -74,8 +74,13 @@ export function mesDoNomeDaPlanilha(nome: string): string | null {
 
 /**
  * Lê a aba CNPJ da planilha da PremieR: uma linha por cliente, com o cabeçalho na linha que tem
- * CÓDIGO e VENDEDOR. Das duas colunas "META MÊS CAMPANHA (KG)", a primeira é a do produto foco e a
- * segunda a de todos os SKUs. Usa o valor já calculado de cada célula (o que o Excel mostra).
+ * VENDEDOR e o jeito de identificar o cliente — CÓDIGO (id da ADS) e/ou IDCLIENTE (o CNPJ). Desde
+ * outubro/2026 a planilha só traz o IDCLIENTE; aí a API acha o código pelo CNPJ no cadastro da ADS.
+ *
+ * Das duas colunas "META MÊS CAMPANHA (KG)", a do produto foco é a que está embaixo do grupo
+ * "PRODUTO FOCO" (na linha acima do cabeçalho) — em setembro era a primeira, em outubro passou a ser a
+ * segunda. Sem esse grupo, vale a ordem antiga: primeiro o foco, depois todos os SKUs.
+ * Usa o valor já calculado de cada célula (o que o Excel mostra).
  */
 export async function lerPlanilhaEspecialistaPet(arquivo: File): Promise<LinhaPlanilhaEspecialistaPet[]> {
   let arquivos: Record<string, Uint8Array>
@@ -95,32 +100,58 @@ export async function lerPlanilhaEspecialistaPet(arquivo: File): Promise<LinhaPl
     const conteudo = texto(caminho)
     if (!conteudo) continue
     const linhas = lerCelulas(xml(conteudo), compartilhadas)
-    const cabecalho = linhas.findIndex((l) => l.some((c) => normalizar(c) === 'CODIGO') && l.some((c) => normalizar(c) === 'VENDEDOR'))
+    const cabecalho = linhas.findIndex(
+      (l) => l.some((c) => COLUNAS_DO_CLIENTE.includes(normalizar(c))) && l.some((c) => normalizar(c) === 'VENDEDOR'),
+    )
     if (cabecalho < 0) continue
 
     const titulos = linhas[cabecalho].map(normalizar)
     const coluna = (nome: string) => titulos.indexOf(nome)
-    const colunasMeta = titulos.flatMap((t, i) => (t.startsWith('META MES CAMPANHA') ? [i] : []))
     const [codigo, nome, vendedor, classificacao] = ['CODIGO', 'NOME', 'VENDEDOR', 'CLASSIFICACAO'].map(coluna)
-    if (nome < 0 || colunasMeta.length < 2) {
+    const documento = coluna('IDCLIENTE') >= 0 ? coluna('IDCLIENTE') : coluna('CNPJ')
+    const metas = colunasDasMetas(titulos, linhas.slice(0, cabecalho))
+    if (nome < 0 || !metas) {
       throw new Error('A aba de clientes não tem as colunas NOME e as duas METAS MÊS CAMPANHA (KG).')
     }
 
+    const celula = (l: string[], i: number) => (i >= 0 ? (l[i] ?? '').trim() : '')
     const clientes = linhas
       .slice(cabecalho + 1)
-      .filter((l) => (l[codigo] ?? '').trim() !== '')
+      .filter((l) => celula(l, codigo) !== '' || celula(l, documento) !== '')
       .map((l) => ({
-        codigoCliente: l[codigo].trim(),
-        nome: (l[nome] ?? '').trim(),
-        representante: (l[vendedor] ?? '').trim(),
-        classificacao: (l[classificacao] ?? '').trim(),
-        metaFoco: Number(l[colunasMeta[0]]) || 0,
-        metaTotal: Number(l[colunasMeta[1]]) || 0,
+        ...(celula(l, codigo) ? { codigoCliente: celula(l, codigo) } : {}),
+        ...(celula(l, documento) ? { cnpj: celula(l, documento) } : {}),
+        nome: celula(l, nome),
+        representante: celula(l, vendedor),
+        classificacao: celula(l, classificacao),
+        metaFoco: Number(l[metas.foco]) || 0,
+        metaTotal: Number(l[metas.total]) || 0,
       }))
     if (!clientes.length) throw new Error('A planilha não tem nenhum cliente embaixo do cabeçalho.')
     return clientes
   }
-  throw new Error('Não achei a aba de clientes (com as colunas CÓDIGO e VENDEDOR) nessa planilha.')
+  throw new Error('Não achei a aba de clientes (com as colunas CÓDIGO ou IDCLIENTE, e VENDEDOR) nessa planilha.')
+}
+
+/** Colunas que identificam o cliente: o código da ADS ou o CNPJ. */
+const COLUNAS_DO_CLIENTE = ['CODIGO', 'IDCLIENTE', 'CNPJ']
+
+/**
+ * Qual das duas "META MÊS CAMPANHA (KG)" é a do produto foco e qual a de todos os SKUs, pelo grupo que
+ * fica nas linhas acima do cabeçalho (cada grupo vale da coluna dele até o próximo, como célula mesclada).
+ */
+function colunasDasMetas(titulos: string[], acima: string[][]): { foco: number; total: number } | null {
+  const colunas = titulos.flatMap((t, i) => (t.startsWith('META MES CAMPANHA') ? [i] : []))
+  if (colunas.length < 2) return null
+  const grupo = (coluna: number) => {
+    for (const linha of [...acima].reverse()) {
+      for (let i = coluna; i >= 0; i--) if ((linha[i] ?? '').trim()) return normalizar(linha[i])
+    }
+    return ''
+  }
+  const foco = colunas.find((c) => grupo(c).includes('FOCO'))
+  if (foco === undefined) return { foco: colunas[0], total: colunas[1] }
+  return { foco, total: colunas.find((c) => c !== foco)! }
 }
 
 /** Abas na ordem do arquivo, a chamada "CNPJ" primeiro. */

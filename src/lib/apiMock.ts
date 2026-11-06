@@ -1,6 +1,6 @@
 import { diasEntre, hoje, somarDias } from './datas'
 import { mesAtual, mesFechado, somarMeses } from './mes'
-import type { DadosUsuario } from './api'
+import type { DadosUsuario, LinhaPlanilhaEspecialistaPet } from './api'
 import type {
   Agendamento,
   ClienteCampanhaOrgannact,
@@ -584,10 +584,13 @@ export function listarEspecialistaPet(): Promise<ClienteEspecialistaPet[]> {
 /** Como a API: a planilha nova substitui o mês inteiro, com realizado zerado. */
 export function importarEspecialistaPet(
   mes: string,
-  clientes: Omit<ClienteEspecialistaPet, 'id' | 'mes' | 'realizadoFoco' | 'realizadoTotal' | 'realizadoReais' | 'realizadoFocoReais' | 'realizadoFocoWild' | 'realizadoTotalAjustado'>[],
+  clientes: LinhaPlanilhaEspecialistaPet[],
 ): Promise<ClienteEspecialistaPet[]> {
-  const novos = clientes.map((c) => ({
+  // Sem cadastro da ADS no mock: quem só veio com CNPJ fica com ele como código.
+  const novos = clientes.map(({ codigoCliente, cnpj, ...c }) => ({
     ...c,
+    codigoCliente: codigoCliente || (cnpj ?? '').replace(/\D/g, ''),
+    cnpj: cnpj ? cnpj.replace(/\D/g, '') : null,
     id: novoId('esp'),
     mes,
     realizadoFoco: 0,
