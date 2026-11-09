@@ -389,31 +389,60 @@ export interface LinhaPlanilhaEspecialistaPet {
   metaTotal: number
 }
 
+/**
+ * A API soma as linhas de venda e devolução em ponto flutuante: quando elas se anulam sobra um resto
+ * tipo -0,0000000000027 kg, que a tela mostrava como "-0,0" e "-0%". Arredonda o kg em 3 casas e o R$
+ * em 2 (o que a ADS tem de verdade) e troca o -0 por 0.
+ */
+function limparRealizado(c: ClienteEspecialistaPet): ClienteEspecialistaPet {
+  const arredondar = (n: number, casas: number) => Math.round(n * 10 ** casas) / 10 ** casas || 0
+  return {
+    ...c,
+    realizadoFoco: arredondar(c.realizadoFoco, 3),
+    realizadoTotal: arredondar(c.realizadoTotal, 3),
+    realizadoFocoWild: arredondar(c.realizadoFocoWild ?? 0, 3),
+    realizadoReais: arredondar(c.realizadoReais, 2),
+    realizadoFocoReais: arredondar(c.realizadoFocoReais ?? 0, 2),
+  }
+}
+
 /** Clientes da campanha Especialista Pet, de todos os meses — a tela filtra pelo mês escolhido. */
-export function listarEspecialistaPet(): Promise<ClienteEspecialistaPet[]> {
+export async function listarEspecialistaPet(): Promise<ClienteEspecialistaPet[]> {
   if (MOCK) return mock.listarEspecialistaPet()
-  return requisitar('/api/especialista-pet')
+  return (await requisitar<ClienteEspecialistaPet[]>('/api/especialista-pet')).map(limparRealizado)
 }
 
 /** Troca os clientes e metas do mês pelos da planilha. O realizado vem zerado — chame sincronizarEspecialistaPet depois. */
-export function importarEspecialistaPet(
+export async function importarEspecialistaPet(
   mes: string,
   clientes: LinhaPlanilhaEspecialistaPet[],
 ): Promise<ClienteEspecialistaPet[]> {
   if (MOCK) return mock.importarEspecialistaPet(mes, clientes)
-  return requisitar('/api/especialista-pet/importar', { method: 'POST', body: JSON.stringify({ mes, clientes }) })
+  const r = await requisitar<ClienteEspecialistaPet[]>('/api/especialista-pet/importar', {
+    method: 'POST',
+    body: JSON.stringify({ mes, clientes }),
+  })
+  return r.map(limparRealizado)
 }
 
 /** Recalcula agora o realizado do mês a partir da ADS (o mês atual também roda sozinho todo dia). */
-export function sincronizarEspecialistaPet(mes: string): Promise<ClienteEspecialistaPet[]> {
+export async function sincronizarEspecialistaPet(mes: string): Promise<ClienteEspecialistaPet[]> {
   if (MOCK) return mock.sincronizarEspecialistaPet(mes)
-  return requisitar(`/api/especialista-pet/sincronizar?mes=${encodeURIComponent(mes)}`, { method: 'POST' })
+  const r = await requisitar<ClienteEspecialistaPet[]>(
+    `/api/especialista-pet/sincronizar?mes=${encodeURIComponent(mes)}`,
+    { method: 'POST' },
+  )
+  return r.map(limparRealizado)
 }
 
 /** Lança o kg de todos os SKUs à mão, no lugar do da ADS; null remove o ajuste. */
-export function ajustarEspecialistaPet(id: string, realizadoTotal: number | null): Promise<ClienteEspecialistaPet> {
+export async function ajustarEspecialistaPet(id: string, realizadoTotal: number | null): Promise<ClienteEspecialistaPet> {
   if (MOCK) return mock.ajustarEspecialistaPet(id, realizadoTotal)
-  return requisitar(`/api/especialista-pet/${id}/ajuste`, { method: 'PUT', body: JSON.stringify({ realizadoTotal }) })
+  const r = await requisitar<ClienteEspecialistaPet>(`/api/especialista-pet/${id}/ajuste`, {
+    method: 'PUT',
+    body: JSON.stringify({ realizadoTotal }),
+  })
+  return limparRealizado(r)
 }
 
 /** Quanto (0 a 100) já foi da sincronização em andamento do mês; null se ela não está rodando. */
