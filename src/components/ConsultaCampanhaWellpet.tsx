@@ -7,6 +7,7 @@ import { formatarData } from '../lib/datas'
 import { mesAtual, rotuloMes, rotuloMesCurto } from '../lib/mes'
 import { formatarValorMeta } from '../lib/unidadeMeta'
 import type { ClienteCampanhaWellpet } from '../types'
+import { FaixaProgresso } from './FaixaProgresso'
 
 const TODOS = ''
 
@@ -338,13 +339,7 @@ function Cliente({ cliente: c, mostrarRepresentante }: { cliente: ClienteCampanh
 function BarraPositivacao({ percentual }: { percentual: number }) {
   return (
     <div className="meta-progress-cell">
-      <span className="meta-progress-track">
-        <span
-          className={`meta-progress-fill${percentual >= 100 ? ' is-complete' : ''}`}
-          style={{ width: `${Math.min(percentual, 100)}%` }}
-        />
-      </span>
-      <span className="meta-progress-pct">{percentual.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}%</span>
+      <FaixaProgresso percentual={percentual} />
     </div>
   )
 }

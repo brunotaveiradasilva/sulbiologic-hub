@@ -2,6 +2,7 @@ import { DetalhesMeta } from './DetalhesMeta'
 import { Realizado } from './Realizado'
 import { formatarValorMeta } from '../lib/unidadeMeta'
 import type { Meta, MetaRepresentante } from '../types'
+import { FaixaProgresso } from './FaixaProgresso'
 
 interface Props {
   representanteNome: string
@@ -37,15 +38,7 @@ export function LinhaMetaRepresentante({ representanteNome, meta, atribuicao, ao
       <td className="num">{percentual === null ? '—' : formatar(falta)}</td>
       <td className="num">
         <div className="meta-progress-cell">
-          <span className="meta-progress-track">
-            <span
-              className={`meta-progress-fill${(percentual ?? 0) >= 100 ? ' is-complete' : ''}`}
-              style={{ width: `${Math.min(percentual ?? 0, 100)}%` }}
-            />
-          </span>
-          <span className="meta-progress-pct">
-            {percentual === null ? '—' : `${percentual.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}%`}
-          </span>
+          <FaixaProgresso percentual={percentual} />
         </div>
       </td>
       <td className="actions-cell">

@@ -9,6 +9,7 @@ import { rotuloMesCurto } from '../lib/mes'
 import { formatarValorMeta } from '../lib/unidadeMeta'
 import { exportarPdfMetasRepresentante } from '../lib/pdfMetasRepresentante'
 import type { Fornecedor, Meta, MetaRepresentante, Representante, TotalVendidoMensal } from '../types'
+import { FaixaProgresso } from './FaixaProgresso'
 
 interface Props {
   representantes: Representante[]
@@ -236,15 +237,7 @@ function CardMetas({ titulo, mes, linhas, aoTrocarOrdem }: PropsCard) {
                   <td className="num">{percentual === null ? '—' : formatarValorMeta(falta, meta.unidade)}</td>
                   <td className="num">
                     <div className="meta-progress-cell">
-                      <span className="meta-progress-track">
-                        <span
-                          className={`meta-progress-fill${(percentual ?? 0) >= 100 ? ' is-complete' : ''}`}
-                          style={{ width: `${Math.min(percentual ?? 0, 100)}%` }}
-                        />
-                      </span>
-                      <span className="meta-progress-pct">
-                        {percentual === null ? '—' : `${percentual.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}%`}
-                      </span>
+                      <FaixaProgresso percentual={percentual} />
                     </div>
                   </td>
                   {aoTrocarOrdem ? (
