@@ -154,7 +154,11 @@ export function MenuLateral({
 
   return (
     <aside className="menu-lateral">
-      <div className="menu-lateral-marca">SulBiologic Hub</div>
+      <div className="menu-lateral-marca">
+        <span className="marca-nome">SulBiologic</span>
+        <span className="marca-faixa" aria-hidden="true" />
+        <span className="marca-sub">Hub</span>
+      </div>
 
       <nav className="menu-lateral-nav" aria-label="Navegação principal">
         {secoes.map((secao) => {

@@ -11,6 +11,7 @@ import { mesAtual, rotuloMesCurto } from '../lib/mes'
 import { exportarPdfEspecialistaPet } from '../lib/pdfEspecialistaPet'
 import { formatarValorMeta } from '../lib/unidadeMeta'
 import type { ClienteEspecialistaPet } from '../types'
+import { FaixaProgresso } from './FaixaProgresso'
 
 const TODOS = ''
 
@@ -354,15 +355,7 @@ function Progresso({ meta, realizado }: { meta: number; realizado: number }) {
         {formatarValorMeta(meta, 'KG')}
       </span>
       <div className="meta-progress-cell">
-        <span className="meta-progress-track">
-          <span
-            className={`meta-progress-fill${(percentual ?? 0) >= 100 ? ' is-complete' : ''}`}
-            style={{ width: `${Math.min(percentual ?? 0, 100)}%` }}
-          />
-        </span>
-        <span className="meta-progress-pct">
-          {percentual === null ? '—' : `${percentual.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}%`}
-        </span>
+        <FaixaProgresso percentual={percentual} />
       </div>
     </div>
   )
