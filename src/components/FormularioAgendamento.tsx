@@ -8,20 +8,22 @@ interface Props {
   /** Agendamento em edição, ou null para um novo. */
   agendamento: Agendamento | null
   materialInicial?: string
+  /** Dia (AAAA-MM-DD) em que o novo agendamento começa — vem do clique no calendário. */
+  dataInicial?: string
   materiais: Material[]
   agendamentos: Agendamento[]
   aoFechar: () => void
   aoSalvar: (agendamento: Omit<Agendamento, 'id'>, id?: string | null) => void
 }
 
-function formVazio(materialId: string) {
+function formVazio(materialId: string, dia = hoje()) {
   return {
     materialId,
     qtd: '1',
     responsavel: '',
     cliente: '',
-    retirada: hoje(),
-    devolucao: hoje(),
+    retirada: dia,
+    devolucao: dia,
     status: 'agendado' as Status,
     obs: '',
   }
@@ -31,6 +33,7 @@ function formVazio(materialId: string) {
 export function FormularioAgendamento({
   agendamento,
   materialInicial,
+  dataInicial,
   materiais,
   agendamentos,
   aoFechar,
@@ -39,7 +42,7 @@ export function FormularioAgendamento({
   const [form, setForm] = useState(() =>
     agendamento
       ? { ...agendamento, qtd: String(agendamento.qtd) }
-      : formVazio(materialInicial || materiais[0]?.id || ''),
+      : formVazio(materialInicial || materiais[0]?.id || '', dataInicial),
   )
   const [erro, setErro] = useState('')
 

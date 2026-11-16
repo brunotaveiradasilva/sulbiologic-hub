@@ -13,6 +13,7 @@ import { CadastrosMetas } from './CadastrosMetas'
 import { PainelResumo } from './PainelResumo'
 import { EstadoVazio } from './EstadoVazio'
 import { TabelaAgendamentos } from './TabelaAgendamentos'
+import { CalendarioAgendamentos } from './CalendarioAgendamentos'
 import { TabelaMateriais } from './TabelaMateriais'
 import { DetalhesAgendamento } from './DetalhesAgendamento'
 import { FormularioAgendamento } from './FormularioAgendamento'
@@ -73,6 +74,7 @@ export function PainelAlmoxarifado({
     () => subabasCadastros(isAdmin, veAlmoxarifado)[0]?.valor ?? 'materiais',
   )
   const [filtro, setFiltro] = useState<Filtro>('todos')
+  const [visao, setVisao] = useState<'lista' | 'calendario'>('lista')
   const [buscaAgenda, setBuscaAgenda] = useState('')
   const [buscaMaterial, setBuscaMaterial] = useState('')
 
@@ -80,6 +82,7 @@ export function PainelAlmoxarifado({
     aberto: boolean
     agendamento: Agendamento | null
     materialInicial?: string
+    dataInicial?: string
   }>({ aberto: false, agendamento: null })
 
   const [detalhesAgendamento, setDetalhesAgendamento] = useState<Agendamento | null>(null)
@@ -109,14 +112,14 @@ export function PainelAlmoxarifado({
     return materiaisOrdenados.filter((m) => !termo || `${m.nome} ${m.codigo}`.toLowerCase().includes(termo))
   }, [materiaisOrdenados, buscaMaterial])
 
-  function abrirAgendamento(agendamento: Agendamento | null, materialInicial?: string) {
+  function abrirAgendamento(agendamento: Agendamento | null, materialInicial?: string, dataInicial?: string) {
     if (!app.materiais.length) {
       setAba('cadastros')
       setSubabaCadastros('materiais')
       setDialogoMaterial({ aberto: true, material: null })
       return
     }
-    setDialogoAgendamento({ aberto: true, agendamento, materialInicial })
+    setDialogoAgendamento({ aberto: true, agendamento, materialInicial, dataInicial })
   }
 
   /** Atalho da página inicial: vai pra seção já na subaba escolhida. */
@@ -237,8 +240,24 @@ export function PainelAlmoxarifado({
                       </button>
                     ))}
                   </div>
+                  <div className="filters" role="group" aria-label="Como ver os agendamentos">
+                    <button aria-pressed={visao === 'lista'} onClick={() => setVisao('lista')}>
+                      Lista
+                    </button>
+                    <button aria-pressed={visao === 'calendario'} onClick={() => setVisao('calendario')}>
+                      Calendário
+                    </button>
+                  </div>
                 </div>
 
+                {visao === 'calendario' && app.agendamentos.length ? (
+                  <CalendarioAgendamentos
+                    agendamentos={agendamentosVisiveis}
+                    materiais={app.materiais}
+                    aoVerDetalhes={setDetalhesAgendamento}
+                    aoCriar={(dia) => abrirAgendamento(null, undefined, dia)}
+                  />
+                ) : (
                 <div className="table-wrap">
                   <table>
                     <thead>
@@ -286,6 +305,7 @@ export function PainelAlmoxarifado({
                     </EstadoVazio>
                   ) : null}
                 </div>
+                )}
               </>
             ) : (
               <>
@@ -398,6 +418,7 @@ export function PainelAlmoxarifado({
         <FormularioAgendamento
           agendamento={dialogoAgendamento.agendamento}
           materialInicial={dialogoAgendamento.materialInicial}
+          dataInicial={dialogoAgendamento.dataInicial}
           materiais={materiaisOrdenados}
           agendamentos={app.agendamentos}
           aoFechar={() => setDialogoAgendamento({ aberto: false, agendamento: null })}
