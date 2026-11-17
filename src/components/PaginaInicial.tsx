@@ -119,7 +119,7 @@ export function PaginaInicial({ nome, isAdmin, consultaMetas, veAlmoxarifado, re
           <h2>
             {saudacao()}, {nome}
           </h2>
-          <p>Escolha por onde começar. Tudo o que está no menu ao lado também está aqui.</p>
+          <p>Escolha por onde começar. Tudo o que está no menu também está aqui.</p>
         </div>
       </div>
 

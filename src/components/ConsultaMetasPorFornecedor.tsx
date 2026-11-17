@@ -148,7 +148,7 @@ export function ConsultaMetasPorFornecedor({
         </div>
       ) : (
         <div className="table-wrap table-wrap-compacta">
-          <table>
+          <table className="tabela-vira-cartao">
             <thead>
               <tr>
                 <th>Representante</th>
