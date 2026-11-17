@@ -205,7 +205,7 @@ function CardMetas({ titulo, mes, linhas, aoTrocarOrdem }: PropsCard) {
 
       <div className="table-scroll">
         <div className="table-wrap">
-          <table className="tabela-metas-representante">
+          <table className="tabela-metas-representante tabela-vira-cartao">
             <thead>
               <tr>
                 <th>Meta</th>
@@ -219,29 +219,29 @@ function CardMetas({ titulo, mes, linhas, aoTrocarOrdem }: PropsCard) {
             <tbody>
               {linhas.map(({ meta, atribuicao, valorMeta, valorRealizado, falta, percentual }, i) => (
                 <tr key={meta.id}>
-                  <td className="cell-material">
+                  <td className="cell-material col-nome">
                     {meta.nome}
                     {meta.unidade === 'KG' && atribuicao?.realizadoEmReais != null ? (
                       <span className="meta-em-reais">{formatarValorMeta(atribuicao.realizadoEmReais, 'REAL')}</span>
                     ) : null}
                     <DetalhesMeta meta={meta} />
                   </td>
-                  <td className="num">{percentual === null ? '—' : formatarValorMeta(valorMeta, meta.unidade)}</td>
-                  <td className="num">
+                  <td className="num col-meta" data-rotulo="Meta">{percentual === null ? '—' : formatarValorMeta(valorMeta, meta.unidade)}</td>
+                  <td className="num col-realizado" data-rotulo="Realizado">
                     {atribuicao ? (
                       <Realizado meta={meta} atribuicao={atribuicao} texto={formatarValorMeta(valorRealizado, meta.unidade)} />
                     ) : (
                       '—'
                     )}
                   </td>
-                  <td className="num">{percentual === null ? '—' : formatarValorMeta(falta, meta.unidade)}</td>
-                  <td className="num">
+                  <td className="num col-falta" data-rotulo="Falta">{percentual === null ? '—' : formatarValorMeta(falta, meta.unidade)}</td>
+                  <td className="num col-progresso">
                     <div className="meta-progress-cell">
                       <FaixaProgresso percentual={percentual} />
                     </div>
                   </td>
                   {aoTrocarOrdem ? (
-                    <td className="actions-cell">
+                    <td className="actions-cell col-acoes">
                       <div className="row-actions">
                         <BotoesOrdemMeta
                           meta={meta}
