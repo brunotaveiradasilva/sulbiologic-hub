@@ -87,12 +87,12 @@ export function MenuLateral({
 
   const cadastros = subabasCadastros(isAdmin, veAlmoxarifado)
   const secoes = [
-    { aba: 'inicio' as const, rotulo: 'Início', icone: <IconeInicio />, subitens: [] },
+    { aba: 'inicio' as const, rotulo: 'Início', curto: 'Início', icone: <IconeInicio />, subitens: [] },
     ...(veAlmoxarifado
       ? [
           {
             aba: 'materiais' as const,
-            rotulo: 'Materiais',
+            rotulo: 'Materiais', curto: 'Agenda',
             icone: <IconeMateriais />,
             subitens: [],
           },
@@ -102,7 +102,7 @@ export function MenuLateral({
       ? [
           {
             aba: 'metas' as const,
-            rotulo: 'Metas',
+            rotulo: 'Metas', curto: 'Metas',
             icone: <IconeMetas />,
             subitens: SUBABAS_METAS.map((s) => ({
               ...s,
@@ -112,7 +112,7 @@ export function MenuLateral({
           },
           {
             aba: 'campanhas' as const,
-            rotulo: 'Campanhas',
+            rotulo: 'Campanhas', curto: 'Campanha',
             icone: <IconeCampanhas />,
             subitens: SUBABAS_CAMPANHAS.map((s) => ({
               ...s,
@@ -126,7 +126,7 @@ export function MenuLateral({
       ? [
           {
             aba: 'dados' as const,
-            rotulo: 'Dados',
+            rotulo: 'Dados', curto: 'Dados',
             icone: <IconeDados />,
             subitens: SUBABAS_DADOS.map((s) => ({
               ...s,
@@ -140,7 +140,7 @@ export function MenuLateral({
       ? [
           {
             aba: 'cadastros' as const,
-            rotulo: 'Cadastros',
+            rotulo: 'Cadastros', curto: 'Cadastro',
             icone: <IconeCadastros />,
             subitens: cadastros.map((s) => ({
               ...s,
@@ -153,7 +153,7 @@ export function MenuLateral({
   ]
 
   return (
-    <aside className="menu-lateral">
+    <aside className="menu-lateral" style={{ '--itens': secoes.length } as CSSProperties}>
       <div className="menu-lateral-marca">
         <span className="marca-nome">SulBiologic</span>
         <span className="marca-faixa" aria-hidden="true" />
@@ -175,7 +175,8 @@ export function MenuLateral({
                 onClick={() => clicarSecao(secao.aba)}
               >
                 {secao.icone}
-                <span>{secao.rotulo}</span>
+                <span className="menu-lateral-rotulo">{secao.rotulo}</span>
+                <span className="menu-lateral-rotulo-curto" aria-hidden="true">{secao.curto}</span>
                 {temSubitens ? (
                   <span className={`menu-lateral-seta${aberta ? ' is-aberta' : ''}`} aria-hidden="true">
                     <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
@@ -265,6 +266,7 @@ export function MenuLateral({
             {avatar ? <img src={avatar} alt="" /> : <span>{nomeExibido.charAt(0).toUpperCase()}</span>}
           </span>
           <span className="menu-lateral-usuario">{nomeExibido}</span>
+          <span className="menu-lateral-rotulo-curto" aria-hidden="true">Conta</span>
         </button>
       </div>
     </aside>

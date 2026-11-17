@@ -213,6 +213,7 @@
     .menu-lateral-sanfona, .menu-lateral-seta, .menu-lateral-sanfona .menu-lateral-subitem { transition: none; }
   }
   nav.tabs.tabs-so-celular { display: none; }
+  .menu-lateral-rotulo-curto { display: none; }
 
   .menu-lateral-conta { margin-top: auto; position: relative; padding-top: 10px; border-top: 1px solid var(--rail-linha); }
   .menu-lateral-rodape {
@@ -282,22 +283,29 @@
       box-shadow: 0 -6px 20px -12px rgba(6, 20, 38, .45);
     }
     .menu-lateral-marca { display: none; }
-    .menu-lateral-nav { flex: 1; flex-direction: row; gap: 2px; min-width: 0; }
+    /* A conta vale uma opção a mais: a navegação cresce na proporção do número de seções. */
+    .menu-lateral-nav { flex: var(--itens, 6) 1 0; flex-direction: row; gap: 2px; min-width: 0; }
     .menu-lateral-item, .menu-lateral-rodape {
       flex: 1 1 0; min-width: 0; min-height: 56px;
       flex-direction: column; justify-content: center; align-items: center; gap: 3px;
-      padding: 6px 2px; text-align: center;
+      padding: 6px 0; text-align: center;
     }
-    .menu-lateral-item span:not(:first-child) {
+    /* Na barra vale o nome curto (cabe com as 7 opções do admin); o nome inteiro continua pro leitor de tela. */
+    .menu-lateral-rotulo, .menu-lateral-usuario {
+      position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+    }
+    .menu-lateral .menu-lateral-rotulo-curto {
       display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-      font-size: 11px; line-height: 1.2; letter-spacing: 0;
+      font-size: 11px; line-height: 1.2; letter-spacing: 0; font-weight: inherit;
+      font-stretch: 82%; /* Archivo é variável na largura: um pouco estreita pra "Campanha" caber em 360px. */
     }
+    .menu-lateral-rodape .menu-lateral-rotulo-curto { font-weight: 500; color: var(--rail-ink-2); }
+    .menu-lateral-rodape.is-ativo .menu-lateral-rotulo-curto { color: var(--rail-ink); }
     .menu-lateral-item span.menu-lateral-seta { display: none; }
     .menu-lateral-sanfona { display: none; }
-    .menu-lateral-conta { display: flex; flex: 0 0 auto; width: 20%; max-width: 76px; margin: 0 0 0 2px; padding: 0; border: 0; }
-    .menu-lateral-usuario { font-size: 11px; font-weight: 500; line-height: 1.2; max-width: 100%; color: var(--rail-ink-2); }
-    .menu-lateral-rodape.is-ativo .menu-lateral-usuario { color: var(--rail-ink); }
-    .menu-lateral .avatar-btn { width: 24px; height: 24px; font-size: 11px; }
+    .menu-lateral-conta { display: flex; flex: 1 1 0; min-width: 0; margin: 0 0 0 2px; padding: 0; border: 0; }
+    .menu-lateral-conta .menu-lateral-rodape { position: relative; }
+    .menu-lateral .avatar-btn { width: 20px; height: 20px; font-size: 10px; border-width: 0; }
     .menu-dropdown { left: auto; right: 0; min-width: 230px; }
     .menu-dropdown button[role="menuitem"] { padding: 12px 14px; font-size: 15px; }
     nav.tabs.tabs-so-celular {
