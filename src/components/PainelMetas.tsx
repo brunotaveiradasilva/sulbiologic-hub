@@ -6,6 +6,7 @@ import { ConsultaMetasPorRepresentante } from './ConsultaMetasPorRepresentante'
 import { ConsultaMetasPorFornecedor } from './ConsultaMetasPorFornecedor'
 import { mesAtual } from '../lib/mes'
 import { metasDoMes } from '../lib/metaOculta'
+import { representantesComCodigoAds } from '../lib/representantes'
 import { SUBABAS_METAS, type SubabaMetas } from '../lib/navegacao'
 
 /**
@@ -66,7 +67,7 @@ export function PainelMetas({ subaba, aoMudarSubaba, isAdmin }: Props) {
         <EstadoVazio titulo="Carregando…" texto="Buscando os dados salvos no servidor." />
       ) : subaba === 'porRepresentante' ? (
         <ConsultaMetasPorRepresentante
-          representantes={metas.representantes}
+          representantes={representantesComCodigoAds(metas.representantes)}
           metas={metasNaConsulta}
           metasRepresentante={metas.metasRepresentante}
           totaisVendidos={metas.totaisVendidos}

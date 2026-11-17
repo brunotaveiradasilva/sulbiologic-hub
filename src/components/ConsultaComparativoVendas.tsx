@@ -17,6 +17,7 @@ import {
   type TipoComparacao,
 } from '../lib/comparativo'
 import { mesAtual, rotuloMesCurto } from '../lib/mes'
+import { representantesComCodigoAds } from '../lib/representantes'
 import { formatarValorMeta } from '../lib/unidadeMeta'
 import type { ValoresVenda } from '../types'
 
@@ -170,7 +171,7 @@ export function ConsultaComparativoVendas() {
           <SeletorMultiplo
             id="dados-representante"
             rotulo="Representante"
-            opcoes={comp.representantes.map((r) => ({ valor: r.id, rotulo: r.nome }))}
+            opcoes={representantesComCodigoAds(comp.representantes).map((r) => ({ valor: r.id, rotulo: r.nome }))}
             selecionados={representanteIds}
             aoMudar={setRepresentanteIds}
             textoTodos="Todos os representantes"

@@ -231,9 +231,9 @@ export interface RepresentanteEntrada {
   codigoAds: string
 }
 
-export function listarRepresentantes(): Promise<Representante[]> {
-  if (MOCK) return mock.listarRepresentantes()
-  return requisitar('/api/representantes')
+export async function listarRepresentantes(): Promise<Representante[]> {
+  const lista: Representante[] = MOCK ? await mock.listarRepresentantes() : await requisitar('/api/representantes')
+  return [...lista].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }))
 }
 
 export function criarRepresentante(representante: RepresentanteEntrada): Promise<Representante> {
