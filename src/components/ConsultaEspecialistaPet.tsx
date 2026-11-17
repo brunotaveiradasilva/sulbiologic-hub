@@ -5,7 +5,15 @@ import { DialogoImportarEspecialistaPet } from './DialogoImportarEspecialistaPet
 import { EstadoVazio } from './EstadoVazio'
 import { SeletorMes } from './SeletorMes'
 import { useEspecialistaPet } from '../hooks/useEspecialistaPet'
-import { descontoEspecialistaPet, lerPlanilhaEspecialistaPet, mesDoNomeDaPlanilha, realizadoTotalEfetivo } from '../lib/especialistaPet'
+import {
+  descontoEspecialistaPet,
+  lerPlanilhaEspecialistaPet,
+  mesDoNomeDaPlanilha,
+  ORDENS_CLIENTES_ESPECIALISTA_PET,
+  ordenarClientesEspecialistaPet,
+  realizadoTotalEfetivo,
+  type OrdemClientesEspecialistaPet,
+} from '../lib/especialistaPet'
 import type { LinhaPlanilhaEspecialistaPet } from '../lib/api'
 import { mesAtual, rotuloMesCurto } from '../lib/mes'
 import { exportarPdfEspecialistaPet } from '../lib/pdfEspecialistaPet'
@@ -44,6 +52,7 @@ export function ConsultaEspecialistaPet({ podeEditar, podeSincronizar }: { podeE
   const esp = useEspecialistaPet()
   const [mes, setMes] = useState(mesAtual)
   const [representante, setRepresentante] = useState(TODOS)
+  const [ordem, setOrdem] = useState<OrdemClientesEspecialistaPet>('meta')
   const [gerandoPdf, setGerandoPdf] = useState(false)
   const entradaArquivo = useRef<HTMLInputElement>(null)
   const [ajustando, setAjustando] = useState<ClienteEspecialistaPet | null>(null)
@@ -63,10 +72,7 @@ export function ConsultaEspecialistaPet({ podeEditar, podeSincronizar }: { podeE
   const visiveis = representante === TODOS ? doMes : doMes.filter((c) => c.representante === representante)
   const resumo = resumir(visiveis)
 
-  const clientesOrdenados = useMemo(
-    () => [...visiveis].sort((a, b) => b.metaTotal - a.metaTotal || a.nome.localeCompare(b.nome, 'pt-BR')),
-    [visiveis],
-  )
+  const clientesOrdenados = useMemo(() => ordenarClientesEspecialistaPet(visiveis, ordem), [visiveis, ordem])
 
   async function escolherArquivo(e: ChangeEvent<HTMLInputElement>) {
     const arquivo = e.target.files?.[0]
@@ -97,6 +103,7 @@ export function ConsultaEspecialistaPet({ podeEditar, podeSincronizar }: { podeE
       await exportarPdfEspecialistaPet({
         mes,
         representantes: escolhidos.map((nome) => ({ nome, clientes: doMes.filter((c) => c.representante === nome) })),
+        ordem,
       })
     } catch {
       window.alert('Não deu pra gerar o PDF. Tente de novo.')
@@ -134,6 +141,16 @@ export function ConsultaEspecialistaPet({ podeEditar, podeSincronizar }: { podeE
           </select>
         </div>
         <SeletorMes id="ep-mes" mes={mes} mesesComDados={mesesComDados} aoMudar={mudarMes} />
+        <div className="field consulta-filtro">
+          <label htmlFor="ep-ordem">Ordenar por</label>
+          <select id="ep-ordem" value={ordem} onChange={(e) => setOrdem(e.target.value as OrdemClientesEspecialistaPet)}>
+            {ORDENS_CLIENTES_ESPECIALISTA_PET.map((o) => (
+              <option key={o.valor} value={o.valor}>
+                {o.rotulo}
+              </option>
+            ))}
+          </select>
+        </div>
         <div className="consulta-acoes">
           {podeEditar ? (
             <button className="btn" disabled={esp.ocupado !== null} onClick={() => entradaArquivo.current?.click()}>

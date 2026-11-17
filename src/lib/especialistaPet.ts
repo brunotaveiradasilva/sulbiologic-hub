@@ -38,6 +38,28 @@ const BONUS_WILD = 7
  * - Combo Wild: comprou qualquer coisa da linha NATTU WILD, ganha +7% no R$ do foco, somado ao que
  *   já tinha e independente das outras metas (ponderada 6% + 7% = 13%, numérica 12% + 7% = 19%).
  */
+export type OrdemClientesEspecialistaPet = 'meta' | 'nome' | 'comprouMais'
+
+export const ORDENS_CLIENTES_ESPECIALISTA_PET: { valor: OrdemClientesEspecialistaPet; rotulo: string }[] = [
+  { valor: 'meta', rotulo: 'Maior meta' },
+  { valor: 'comprouMais', rotulo: 'Quem comprou mais' },
+  { valor: 'nome', rotulo: 'Ordem alfabética' },
+]
+
+/** Ordem da tabela de clientes (tela e PDF). "Quem comprou mais" usa o total de kg em todos os SKUs, já com o ajuste manual. */
+export function ordenarClientesEspecialistaPet(
+  clientes: ClienteEspecialistaPet[],
+  ordem: OrdemClientesEspecialistaPet,
+): ClienteEspecialistaPet[] {
+  const porNome = (a: ClienteEspecialistaPet, b: ClienteEspecialistaPet) =>
+    a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' })
+  return [...clientes].sort((a, b) => {
+    if (ordem === 'nome') return porNome(a, b)
+    if (ordem === 'comprouMais') return realizadoTotalEfetivo(b) - realizadoTotalEfetivo(a) || porNome(a, b)
+    return b.metaTotal - a.metaTotal || porNome(a, b)
+  })
+}
+
 export function descontoEspecialistaPet(c: ClienteEspecialistaPet): DescontoEspecialistaPet {
   const bateuTotal = c.metaTotal > 0 && realizadoTotalEfetivo(c) >= c.metaTotal
   const bateuFoco = c.metaFoco > 0 && c.realizadoFoco >= c.metaFoco

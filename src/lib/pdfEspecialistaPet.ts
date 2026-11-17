@@ -1,6 +1,11 @@
 import { dataDeHojeParaArquivo, rotuloMes, rotuloMesCurto } from './mes'
 import { formatarValorMeta } from './unidadeMeta'
-import { descontoEspecialistaPet, realizadoTotalEfetivo } from './especialistaPet'
+import {
+  descontoEspecialistaPet,
+  ordenarClientesEspecialistaPet,
+  realizadoTotalEfetivo,
+  type OrdemClientesEspecialistaPet,
+} from './especialistaPet'
 import { carregarLogo } from './pdfMetasRepresentante'
 import type { ClienteEspecialistaPet } from '../types'
 
@@ -17,6 +22,8 @@ interface Dados {
   mes: string
   /** Um representante por página, cada um com os clientes dele. */
   representantes: { nome: string; clientes: ClienteEspecialistaPet[] }[]
+  /** A mesma ordem escolhida na tela. */
+  ordem: OrdemClientesEspecialistaPet
 }
 
 /**
@@ -24,7 +31,7 @@ interface Dados {
  * (produto foco com e sem WILD, todos os SKUs) e o desconto conquistado — o mesmo da tela. Em paisagem,
  * pelas colunas. As bibliotecas de PDF só carregam no clique.
  */
-export async function exportarPdfEspecialistaPet({ mes, representantes }: Dados) {
+export async function exportarPdfEspecialistaPet({ mes, representantes, ordem }: Dados) {
   const [{ jsPDF }, { autoTable }, logo] = await Promise.all([
     import('jspdf'),
     import('jspdf-autotable'),
@@ -79,7 +86,7 @@ export async function exportarPdfEspecialistaPet({ mes, representantes }: Dados)
     })
     doc.setFont('helvetica', 'normal')
 
-    const ordenados = [...clientes].sort((a, b) => b.metaTotal - a.metaTotal || a.nome.localeCompare(b.nome, 'pt-BR'))
+    const ordenados = ordenarClientesEspecialistaPet(clientes, ordem)
     autoTable(doc, {
       startY: yKpi + 14,
       margin: { left: margem, right: margem },
