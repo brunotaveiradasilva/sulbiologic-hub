@@ -320,11 +320,7 @@
   .login-page {
     min-height: 100vh; display: flex; align-items: center; justify-content: center;
     padding: 22px;
-    /* Mesma cena nos dois temas. O tom de fundo é o topo do céu do SVG: no celular a imagem só ocupa a base. */
-    background: #0B1A36 url('./assets/login-pet.svg') center bottom / cover no-repeat;
-  }
-  @media (max-aspect-ratio: 1/1) {
-    .login-page { background-size: auto 45%; }
+    background: var(--ground);
   }
   .login-card {
     width: 100%; max-width: 368px;
