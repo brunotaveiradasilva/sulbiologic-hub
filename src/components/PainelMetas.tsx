@@ -39,11 +39,10 @@ export function PainelMetas({ subaba, aoMudarSubaba, isAdmin }: Props) {
         <div>
           <h2>Metas</h2>
         </div>
-        {isAdmin ? (
-          <button className="btn" disabled={metas.sincronizando} onClick={() => metas.sincronizarComAds(mes)}>
-            {metas.sincronizando ? 'Sincronizando…' : 'Sincronizar com a ADS'}
-          </button>
-        ) : null}
+        {/* Sincronizar todo mundo pode (a API devolve pro representante só as metas dele). */}
+        <button className="btn" disabled={metas.sincronizando} onClick={() => metas.sincronizarComAds(mes)}>
+          {metas.sincronizando ? 'Sincronizando…' : 'Sincronizar com a ADS'}
+        </button>
       </div>
 
       {metas.erro ? (

@@ -18,7 +18,6 @@ export default function App() {
       usuario={auth.usuario}
       nomeExibido={auth.nomeExibido ?? auth.usuario}
       isAdmin={auth.isAdmin}
-      sincronizaEspecialistaPet={auth.sincronizaEspecialistaPet}
       consultaMetas={auth.consultaMetas}
       veAlmoxarifado={auth.veAlmoxarifado}
       avatar={auth.avatar}

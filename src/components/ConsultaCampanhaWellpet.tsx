@@ -118,16 +118,17 @@ export function ConsultaCampanhaWellpet({ podeEditar }: { podeEditar: boolean })
           </select>
         </div>
         <SeletorMes id="wp-mes" mes={mes} mesesComDados={mesesComDados} aoMudar={mudarMes} />
-        {podeEditar ? (
-          <div className="consulta-acoes">
+        <div className="consulta-acoes">
+          {podeEditar ? (
             <button className="btn" disabled={camp.ocupado !== null} onClick={montar}>
               {camp.ocupado === 'montando' ? 'Montando…' : doMes.length ? 'Refazer lista' : 'Montar lista'}
             </button>
-            <button className="btn" disabled={camp.ocupado !== null || !doMes.length} onClick={() => camp.sincronizar(mes)}>
-              {camp.ocupado === 'sincronizando' ? 'Sincronizando…' : 'Sincronizar com a ADS'}
-            </button>
-          </div>
-        ) : null}
+          ) : null}
+          {/* Sincronizar todo mundo pode; montar/refazer a lista segue só do admin. */}
+          <button className="btn" disabled={camp.ocupado !== null || !doMes.length} onClick={() => camp.sincronizar(mes)}>
+            {camp.ocupado === 'sincronizando' ? 'Sincronizando…' : 'Sincronizar com a ADS'}
+          </button>
+        </div>
       </div>
 
       {camp.carregando && !camp.clientes.length ? (

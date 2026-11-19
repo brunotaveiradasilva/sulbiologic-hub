@@ -142,15 +142,14 @@ export function ConsultaCampanhaOrgannact({ podeEditar }: { podeEditar: boolean 
         <SeletorMes id="org-mes" mes={mes} mesesComDados={mesesComDados} aoMudar={mudarMes} />
         <div className="consulta-acoes">
           {podeEditar ? (
-            <>
-              <button className="btn" disabled={camp.ocupado !== null} onClick={montar}>
-                {camp.ocupado === 'montando' ? 'Montando…' : doMes.length ? 'Refazer lista' : 'Montar lista'}
-              </button>
-              <button className="btn" disabled={camp.ocupado !== null || !doMes.length} onClick={() => camp.sincronizar(mes)}>
-                {camp.ocupado === 'sincronizando' ? 'Sincronizando…' : 'Sincronizar com a ADS'}
-              </button>
-            </>
+            <button className="btn" disabled={camp.ocupado !== null} onClick={montar}>
+              {camp.ocupado === 'montando' ? 'Montando…' : doMes.length ? 'Refazer lista' : 'Montar lista'}
+            </button>
           ) : null}
+          {/* Sincronizar todo mundo pode; montar/refazer a lista segue só do admin. */}
+          <button className="btn" disabled={camp.ocupado !== null || !doMes.length} onClick={() => camp.sincronizar(mes)}>
+            {camp.ocupado === 'sincronizando' ? 'Sincronizando…' : 'Sincronizar com a ADS'}
+          </button>
           <button
             className="btn"
             disabled={gerandoPdf || !gradeVisivel.length}
