@@ -40,8 +40,45 @@ export function aoSessaoExpirar(fn: (() => void) | null): void {
   aoExpirar = fn
 }
 
-async function requisitar<T>(caminho: string, opcoes?: RequestInit): Promise<T> {
+// Leituras do que já está salvo no banco: se passar disso, desiste e mostra erro com "Tentar de novo"
+// em vez de ficar carregando pra sempre. Folgado porque o Render Free leva ~1 min pra acordar.
+const TEMPO_LIMITE_LEITURA_MS = 90_000
+// Depois disso sem resposta, avisa na tela que o servidor provavelmente está acordando.
+const DEMORA_PRA_AVISAR_MS = 5_000
+
+// Quantas leituras estão demorando além do normal agora; quem estiver ouvindo (App) mostra o aviso.
+let demorando = 0
+let aoMudarDemora: ((demorando: boolean) => void) | null = null
+export function aoServidorDemorar(fn: ((demorando: boolean) => void) | null): void {
+  aoMudarDemora = fn
+}
+
+interface OpcoesRequisicao extends RequestInit {
+  /** 0 = sem limite. Padrão: TEMPO_LIMITE_LEITURA_MS em GET, sem limite no resto (sincronizações demoram). */
+  tempoLimiteMs?: number
+}
+
+async function requisitar<T>(caminho: string, opcoes?: OpcoesRequisicao): Promise<T> {
   const sessao = sessaoSalva()
+  const { tempoLimiteMs, ...init } = opcoes ?? {}
+  const ehLeitura = !init.method || init.method === 'GET'
+  const limite = tempoLimiteMs ?? (ehLeitura ? TEMPO_LIMITE_LEITURA_MS : 0)
+
+  const controle = new AbortController()
+  let estourou = false
+  const timerLimite = limite
+    ? setTimeout(() => {
+        estourou = true
+        controle.abort()
+      }, limite)
+    : undefined
+  let avisou = false
+  const timerAviso = limite
+    ? setTimeout(() => {
+        avisou = true
+        if (demorando++ === 0) aoMudarDemora?.(true)
+      }, DEMORA_PRA_AVISAR_MS)
+    : undefined
 
   let resposta: Response
   try {
@@ -50,10 +87,19 @@ async function requisitar<T>(caminho: string, opcoes?: RequestInit): Promise<T> 
         'Content-Type': 'application/json',
         ...(sessao ? { Authorization: `Bearer ${sessao.token}` } : {}),
       },
-      ...opcoes,
+      ...init,
+      signal: controle.signal,
     })
   } catch {
-    throw new ErroApi('Não foi possível falar com o servidor. Verifique sua conexão e tente de novo.')
+    throw new ErroApi(
+      estourou
+        ? 'O servidor demorou demais pra responder. Tente de novo em instantes.'
+        : 'Não foi possível falar com o servidor. Verifique sua conexão e tente de novo.',
+    )
+  } finally {
+    clearTimeout(timerLimite)
+    clearTimeout(timerAviso)
+    if (avisou && --demorando === 0) aoMudarDemora?.(false)
   }
 
   // 401 com sessão salva = token expirou/foi revogado: derruba pra tela de login com um aviso
@@ -80,7 +126,12 @@ export function login(
   senha: string,
 ): Promise<{ token: string; usuario: string; role: Role; avatar: string | null; nome: string | null }> {
   if (MOCK) return mock.login(usuario)
-  return requisitar('/api/auth/login', { method: 'POST', body: JSON.stringify({ usuario, senha }) })
+  // Costuma ser a 1ª chamada depois do servidor dormir: com limite, ganha o aviso de "acordando".
+  return requisitar('/api/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ usuario, senha }),
+    tempoLimiteMs: TEMPO_LIMITE_LEITURA_MS,
+  })
 }
 
 /** O próprio login de quem está com sessão — nome, foto e perfil atualizados pelo admin. */
@@ -324,7 +375,8 @@ export function listarTotaisVendidos(): Promise<TotalVendidoMensal[]> {
 /** Numa meta CLIENTES, quem o representante positivou e quanto em cada semana do mês — vem da ADS na hora. */
 export function buscarPositivacaoClientes(metaRepresentanteId: string): Promise<PositivacaoClientes> {
   if (MOCK) return mock.buscarPositivacaoClientes(metaRepresentanteId)
-  return requisitar(`/api/metas-representante/${encodeURIComponent(metaRepresentanteId)}/clientes`)
+  // Vem da ADS na hora: pode demorar de verdade, sem tempo limite.
+  return requisitar(`/api/metas-representante/${encodeURIComponent(metaRepresentanteId)}/clientes`, { tempoLimiteMs: 0 })
 }
 
 /** Força agora o recálculo do realizado de um mês a partir do histórico de vendas da ADS (o mês atual também roda sozinho todo dia). */
@@ -373,7 +425,8 @@ export function buscarVendasPeriodo(inicio: string, fim: string, filtros: Filtro
   const params = new URLSearchParams({ inicio, fim })
   for (const id of filtros.representanteIds ?? []) params.append('representanteId', id)
   for (const id of filtros.fornecedorIds ?? []) params.append('fornecedorId', id)
-  return requisitar(`/api/dados/vendas?${params}`)
+  // Busca na ADS: pode demorar de verdade, sem tempo limite.
+  return requisitar(`/api/dados/vendas?${params}`, { tempoLimiteMs: 0 })
 }
 
 /** Uma linha da aba CNPJ da planilha da PremieR, como vai pra API na importação. */
@@ -450,6 +503,8 @@ export async function progressoSincronizacaoEspecialistaPet(mes: string): Promis
   if (MOCK) return mock.progressoSincronizacaoEspecialistaPet(mes)
   const r: { percentual: number | null } = await requisitar(
     `/api/especialista-pet/sincronizar/progresso?mes=${encodeURIComponent(mes)}`,
+    // Consultado durante a sincronização (servidor ocupado): sem limite nem aviso de "acordando".
+    { tempoLimiteMs: 0 },
   )
   return r.percentual
 }
@@ -485,7 +540,7 @@ export interface ProgressoCampanhaWellpet {
 
 export function progressoCampanhaWellpet(mes: string): Promise<ProgressoCampanhaWellpet> {
   if (MOCK) return mock.progressoCampanhaWellpet(mes)
-  return requisitar(`/api/campanha-wellpet/progresso?mes=${encodeURIComponent(mes)}`)
+  return requisitar(`/api/campanha-wellpet/progresso?mes=${encodeURIComponent(mes)}`, { tempoLimiteMs: 0 })
 }
 
 /** Clientes da campanha Organnact, de todos os meses — a tela filtra pelo mês escolhido. */
@@ -511,5 +566,5 @@ export function sincronizarCampanhaOrgannact(mes: string): Promise<ClienteCampan
 
 export function progressoCampanhaOrgannact(mes: string): Promise<ProgressoCampanhaWellpet> {
   if (MOCK) return mock.progressoCampanhaOrgannact(mes)
-  return requisitar(`/api/campanha-organnact/progresso?mes=${encodeURIComponent(mes)}`)
+  return requisitar(`/api/campanha-organnact/progresso?mes=${encodeURIComponent(mes)}`, { tempoLimiteMs: 0 })
 }
