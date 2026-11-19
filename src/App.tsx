@@ -1,6 +1,7 @@
 import { useAuth } from './hooks/useAuth'
 import { TelaLogin } from './components/TelaLogin'
 import { PainelAlmoxarifado } from './components/PainelAlmoxarifado'
+import { AvisoServidorAcordando } from './components/AvisoServidorAcordando'
 
 /**
  * Porta de entrada do app: sem login, só a tela de login existe — o resto (e a busca de
@@ -10,21 +11,29 @@ export default function App() {
   const auth = useAuth()
 
   if (!auth.usuario) {
-    return <TelaLogin entrando={auth.entrando} erro={auth.erro} aoEntrar={auth.entrar} />
+    return (
+      <>
+        <TelaLogin entrando={auth.entrando} erro={auth.erro} aoEntrar={auth.entrar} />
+        <AvisoServidorAcordando />
+      </>
+    )
   }
 
   return (
-    <PainelAlmoxarifado
-      usuario={auth.usuario}
-      nomeExibido={auth.nomeExibido ?? auth.usuario}
-      isAdmin={auth.isAdmin}
-      sincronizaEspecialistaPet={auth.sincronizaEspecialistaPet}
-      consultaMetas={auth.consultaMetas}
-      veAlmoxarifado={auth.veAlmoxarifado}
-      avatar={auth.avatar}
-      aoSair={auth.sair}
-      aoTrocarFoto={auth.trocarFoto}
-      aoSalvarDados={auth.atualizarMeusDados}
-    />
+    <>
+      <PainelAlmoxarifado
+        usuario={auth.usuario}
+        nomeExibido={auth.nomeExibido ?? auth.usuario}
+        isAdmin={auth.isAdmin}
+        sincronizaEspecialistaPet={auth.sincronizaEspecialistaPet}
+        consultaMetas={auth.consultaMetas}
+        veAlmoxarifado={auth.veAlmoxarifado}
+        avatar={auth.avatar}
+        aoSair={auth.sair}
+        aoTrocarFoto={auth.trocarFoto}
+        aoSalvarDados={auth.atualizarMeusDados}
+      />
+      <AvisoServidorAcordando />
+    </>
   )
 }

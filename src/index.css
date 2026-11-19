@@ -823,6 +823,22 @@
   .carregando-tela-pct { min-width: 3em; text-align: right; font-variant-numeric: tabular-nums; }
   @media (prefers-reduced-motion: reduce) { .carregando-tela-spinner { animation-duration: 2.4s; } }
 
+  /* Aviso de servidor acordando (Render Free): faixa no rodapé, não bloqueia nada. */
+  .aviso-acordando {
+    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 50;
+    display: flex; align-items: center; gap: 12px;
+    width: max-content; max-width: calc(100vw - 32px);
+    padding: 12px 18px; border-radius: var(--radius-lg);
+    background: var(--marca); color: #fff; font-size: 15px; line-height: 1.4;
+    box-shadow: var(--shadow-flutuante);
+  }
+  .aviso-acordando-spinner {
+    flex-shrink: 0; width: 18px; height: 18px; border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, .3); border-top-color: #fff;
+    animation: girar .8s linear infinite;
+  }
+  @media (prefers-reduced-motion: reduce) { .aviso-acordando-spinner { animation-duration: 2.4s; } }
+
   /* A faixa do logo: barra grossa, cor chapada, com o percentual escrito dentro.
      O texto existe duas vezes: por baixo na cor de tinta e dentro do preenchimento em branco,
      recortado pela largura dele (100cqw = largura da trilha). */
