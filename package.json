@@ -26,6 +26,6 @@
     "typescript": "~6.0.2",
     "vite": "^8.2.2"
   },
-  "description": "Controle de agendamento de materiais: retiradas, devolucoes, responsavel, cliente e atrasos.",
+  "description": "Hub interno de uma distribuidora: metas de venda, campanhas de fornecedores, comparativo de vendas e almoxarifado.",
   "license": "MIT"
 }

@@ -1,112 +1,122 @@
 # SulBiologic Hub
 
-Sistema de gestão: controle de retirada e devolução de materiais (cadastro dos itens, agendamento por período, responsável, cliente e marcação automática de atrasos), metas por fornecedor e representante, e checklist. Front-end em React, TypeScript e Vite; os dados ficam num banco de verdade, servidos pela [almoxarifado-api](https://github.com/brunotaveiradasilva/almoxarifado-api) (Java), para acessar de qualquer computador.
+Sistema interno de uma distribuidora de produtos veterinários e pet, em uso diário pelo escritório e pelos representantes de venda. Junta num lugar só o que antes vivia em planilhas: **metas de venda e quanto já foi realizado**, **campanhas de incentivo dos fornecedores**, **comparativo de vendas entre períodos** e o **almoxarifado** (empréstimo de materiais com atraso calculado).
 
-![Tela de agendamentos](docs/agendamentos.png)
+**[▶ Abrir a demonstração](https://brunotaveiradasilva.github.io/sulbiologic-hub/demo/)** — roda no navegador com dados fictícios, sem login e sem servidor.
 
-## O que ele resolve
+![Página inicial](docs/screenshots/inicio.png)
 
-Quem empresta equipamento — almoxarifado, escola, locadora, equipe de campo — costuma controlar isso em planilha, e a planilha não avisa quando um item passou da data nem impede reservar três projetores quando só existem dois. O app cobre esses dois pontos:
+## O problema
 
-- **Atraso é calculado, não digitado.** Todo agendamento que ainda não voltou e passou da data de devolução aparece como *Atrasado*, com quantos dias, sem ninguém precisar marcar nada.
-- **Disponibilidade por período.** Ao agendar, o app soma o que já está comprometido naquelas datas e avisa quando a quantidade pedida passa do estoque cadastrado.
+A distribuidora fechava o mês em planilhas paralelas: a meta de cada representante numa, o realizado copiado do ERP (ADS) em outra, as campanhas de cada fornecedor com regras próprias em mais algumas. Os vendedores, na rua, perguntavam por WhatsApp quanto faltava pra bater a meta.
+
+O Hub resolve isso puxando os números direto do ERP e aplicando as regras de cada meta e campanha:
+
+- **Realizado é calculado, não digitado.** Vendas, kg vendidos e clientes positivados vêm da ADS e são somados por meta, respeitando divisão, fornecedor e produtos incluídos/excluídos de cada uma.
+- **Cada representante vê só o que é seu**, no celular: meta, realizado, quanto falta e situação nas campanhas.
+- **O escritório gera os PDFs** de metas e campanhas por representante e manda pelo WhatsApp.
 
 ## Funcionalidades
 
-- Cadastro de materiais com nome, código/patrimônio, quantidade em estoque e observação
-- Agendamento com material, quantidade, responsável, cliente, data de retirada, data de devolução, status e observação
-- Status *Agendado → Retirado → Devolvido*, com botões de um clique na própria linha
-- Painel do dia: retiradas de hoje, devoluções de hoje, itens em posse e atrasados
-- Busca por material, responsável, cliente ou observação, e filtros por status
-- Sugestão automática de clientes já cadastrados
-- Barra de ocupação por material (quanto está fora do estoque)
-- Aba **Dados** (só ADMIN): compara quanto cada representante vendeu num período contra outro — mês × mesmo mês do ano anterior, mês × mês anterior, acumulado do ano ou períodos livres —, com filtro de representante e fornecedor, em R$, kg ou clientes. Os números vêm direto da ADS, então valem pra qualquer mês passado
-- Tema claro e escuro, seguindo a preferência do sistema
-- Dados centralizados na [almoxarifado-api](https://github.com/brunotaveiradasilva/almoxarifado-api): o mesmo cadastro aparece em qualquer computador
-- Login obrigatório: nada do almoxarifado carrega sem entrar com usuário e senha
-
-![Cadastro de materiais](docs/materiais.png)
-
-## Stack
-
-| Camada | Escolha |
+| Área | O que faz |
 | --- | --- |
-| Interface | React 19 + TypeScript |
-| Build | Vite |
-| Estilo | CSS puro com variáveis (temas claro/escuro) |
-| Persistência | API própria ([almoxarifado-api](https://github.com/brunotaveiradasilva/almoxarifado-api), Java + MySQL) |
-| Deploy | GitHub Actions → GitHub Pages |
+| **Metas** | Metas mensais por fornecedor e representante em R$, kg, unidades ou clientes positivados; visão por representante e por fornecedor; cópia das metas do mês anterior; exportação em PDF |
+| **Campanhas** | Especialista Pet (importa a planilha do fornecedor e cruza com as vendas), positivação Wellpet e Organnact, com faixas de progresso e PDF por representante |
+| **Dados** | Comparativo de vendas: mês × mesmo mês do ano anterior, mês × mês anterior, acumulado do ano ou períodos livres, filtrando por representante e fornecedor |
+| **Materiais** | Agendamento de retirada e devolução, atraso calculado automaticamente, checagem de disponibilidade por período, visão em lista e calendário |
+| **Cadastros** | Fornecedores, representantes, metas, materiais e usuários; geração de logins em lote para os representantes |
+| **Conta** | Quatro perfis de acesso (administrador, supervisor, representante, almoxarifado), troca de senha e foto |
 
-## Como rodar
+| | |
+| --- | --- |
+| ![Metas por representante](docs/screenshots/metas-representante.png) | ![Comparativo de vendas](docs/screenshots/comparativo.png) |
+| ![Calendário de materiais](docs/screenshots/calendario.png) | ![Metas por fornecedor no tema escuro](docs/screenshots/metas-fornecedor-escuro.png) |
 
-Requer Node.js 20 ou superior, e a [almoxarifado-api](https://github.com/brunotaveiradasilva/almoxarifado-api) rodando (`docker compose up` nela é o caminho mais rápido).
+## Arquitetura
+
+```mermaid
+flowchart LR
+    subgraph Navegador
+        UI["React 19 + TypeScript<br/>(GitHub Pages)"]
+    end
+    subgraph Render
+        API["API REST<br/>Java / Spring Boot"]
+    end
+    DB[("TiDB<br/>(MySQL)")]
+    ADS["ERP ADS<br/>vendas e clientes"]
+    GH["GitHub Actions<br/>deploy + ping"]
+
+    UI -- "JWT" --> API
+    API --> DB
+    API -- "sincroniza vendas" --> ADS
+    GH -. "build e publica" .-> UI
+    GH -. "mantém acordada" .-> API
+```
+
+- **Front-end (este repositório):** SPA em React + TypeScript + Vite, CSS puro com variáveis (temas claro e escuro), PDFs gerados no navegador com jsPDF.
+- **Back-end:** API REST em Java/Spring Boot, com autenticação JWT e perfis de acesso, banco TiDB (compatível com MySQL) e integração com o ERP da distribuidora. O código dela fica num repositório privado.
+- **Deploy:** cada push na `main` publica no GitHub Pages duas versões: o sistema real (`/`) e a demonstração (`/demo/`), que usa um back-end falso em memória.
+
+### Organização do código
+
+O `src/` é dividido por funcionalidade: cada pasta em `features/` tem as telas, o hook de estado e as regras de negócio daquela área.
+
+```
+src/
+├── main.tsx
+├── index.css                 # identidade visual, temas claro/escuro
+├── types.ts                  # tipos de domínio compartilhados
+├── app/                      # casca do app: login × painel, menu lateral, página inicial, navegação
+├── api/
+│   ├── api.ts                # cliente HTTP (token JWT, 401 → volta pro login, aviso de servidor lento)
+│   └── apiMock.ts            # back-end falso em memória, usado na demo e no desenvolvimento
+├── features/
+│   ├── auth/                 # tela de login e sessão
+│   ├── metas/                # metas por representante/fornecedor, realizado, PDF
+│   ├── campanhas/            # Especialista Pet, Wellpet, Organnact (regras + PDFs)
+│   ├── dados/                # comparativo de vendas entre períodos
+│   ├── almoxarifado/         # agendamentos, calendário, regras de atraso e disponibilidade
+│   ├── cadastros/            # fornecedores, representantes e metas
+│   └── usuarios/             # usuários, geração de logins, Minha conta
+└── shared/
+    ├── components/           # Modal, seletores, estados vazios, barras de progresso
+    └── lib/                  # datas, meses, unidades de meta
+```
+
+### Decisões que valem destacar
+
+- **UI otimista:** criações aparecem na tela na hora com um id provisório (`shared/lib/idTemporario.ts`) e são reconciliadas quando a API confirma.
+- **Back-end falso trocável por variável de ambiente:** `VITE_MOCK_API=true` faz toda chamada de `api.ts` cair em `apiMock.ts`, o que permite desenvolver a interface sem Docker e publicar a demo sem expor dados reais.
+- **Servidor gratuito que dorme:** a API roda no plano gratuito do Render, que hiberna após 15 minutos. Um workflow agendado a mantém acordada, e o front mostra um aviso quando uma resposta demora (`features/auth/AvisoServidorAcordando.tsx`).
+- **Regras de negócio fora dos componentes:** cálculo de atraso, período de meta, positivação e faixas de campanha ficam em módulos `.ts` puros, separados das telas.
+
+## Rodando localmente
+
+Requer Node.js 20 ou superior.
 
 ```bash
 git clone https://github.com/brunotaveiradasilva/sulbiologic-hub.git
 cd sulbiologic-hub
 npm install
-cp .env.example .env   # VITE_API_URL — por padrão já aponta pro localhost:8080
+cp .env.example .env.local   # por padrão usa o back-end falso, sem precisar da API
 npm run dev
 ```
 
-O app sobe em `http://localhost:5173`. Na primeira tela há o botão **Carregar dados de exemplo**, útil para ver tudo funcionando antes de cadastrar os seus itens.
+O app abre em `http://localhost:5173` já logado como administrador, com dados de exemplo.
 
-Outros comandos:
+| Comando | O que faz |
+| --- | --- |
+| `npm run dev` | servidor de desenvolvimento |
+| `npm run build` | checagem de tipos + build de produção em `dist/` |
+| `npm run preview` | serve o build |
+| `npm run lint` | análise estática com oxlint |
 
-```bash
-npm run build     # gera a versão de produção em dist/
-npm run preview   # serve o que foi gerado em dist/
-npm run lint      # análise estática com oxlint
-```
+Para usar a API de verdade, defina `VITE_API_URL` (veja `.env.example`) e não use `VITE_MOCK_API`.
 
-## Estrutura
+## Stack
 
-```
-src/
-├── App.tsx                  # guarda de login: decide entre TelaLogin e PainelAlmoxarifado
-├── index.css                # identidade visual e temas
-├── types.ts                 # Material, Agendamento, Status
-├── lib/
-│   ├── datas.ts             # datas em ISO, formatação e diferença em dias
-│   ├── regras.ts            # regras de negócio (atraso, disponibilidade, filtros)
-│   ├── api.ts               # cliente HTTP da almoxarifado-api (anexa o token, trata 401)
-│   ├── auth.ts              # sessão (token + usuário) salva no localStorage
-│   └── idTemporario.ts      # id provisório pra UI otimista, até a API confirmar
-├── hooks/
-│   ├── useAlmoxarifado.ts   # estado da aplicação e ações que o alteram
-│   └── useAuth.ts           # sessão do usuário: entrar, sair, erro de login
-├── data/
-│   └── exemplos.ts          # dados fictícios para demonstração
-└── components/              # PainelAlmoxarifado (telas, abas, filtros e diálogos), TelaLogin e demais
-```
-
-As regras de negócio ficam em `src/lib/regras.ts`, separadas da interface: são funções puras que recebem os dados e devolvem o resultado, o que facilita testar e reaproveitar caso o projeto ganhe um back-end depois.
-
-## Decisões de implementação
-
-- **Datas como texto ISO (`AAAA-MM-DD`).** Comparar `"2026-09-08" < "2026-09-10"` é comparação de texto e não sofre com fuso horário — problema clássico ao usar `Date` para representar um dia do calendário.
-- **Status derivado.** *Atrasado* não é gravado; é calculado a partir da data de devolução e do status atual. Não existe estado inconsistente para corrigir.
-- **Estado em um hook só.** `useAlmoxarifado` concentra os dados e as ações, busca tudo da API ao montar, e mantém a UI otimista: cada ação atualiza a tela na hora e confirma com a API em seguida — se a API recusar, a mudança é desfeita e o erro some no rodapé.
-- **`materialId` sem chave estrangeira.** Um agendamento guarda o id do material como texto solto, não uma relação de verdade — de propósito, porque excluir um material não pode apagar o histórico de quem já retirou aquele item.
-
-## Deploy
-
-O workflow em `.github/workflows/deploy.yml` publica no GitHub Pages a cada push na `main`. Para ativar:
-
-1. No repositório, vá em **Settings → Pages** e, em *Source*, escolha **GitHub Actions**.
-2. Em **Settings → Secrets and variables → Actions**, crie o secret `VITE_API_URL` com a URL pública da almoxarifado-api já publicada (ex: `https://almoxarifado-api.up.railway.app`).
-3. Dê push na `main`. O site fica em `https://<seu-usuário>.github.io/<nome-do-repositório>/`.
-
-O caminho base do build é ajustado automaticamente pelo workflow, através da variável `BASE_PATH`.
-
-## Limitações conhecidas
-
-- Materiais e agendamentos continuam sem permissão por usuário: qualquer login vê e edita todos.
-  Só a aba **Metas** e o gerenciamento de **Usuários** são restritos a quem tem papel ADMIN.
-- Não há histórico de alterações — só o estado atual de cada material e agendamento.
-- Não existe "esqueci minha senha": trocar senha ou criar novo login se faz direto na
-  [almoxarifado-api](https://github.com/brunotaveiradasilva/almoxarifado-api#login) por enquanto.
+React 19 · TypeScript · Vite · CSS puro · jsPDF · oxlint · GitHub Actions · GitHub Pages · Java/Spring Boot · TiDB
 
 ## Licença
 
-MIT — veja [LICENSE](LICENSE).
+[MIT](LICENSE)
