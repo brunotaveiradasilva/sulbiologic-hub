@@ -32,12 +32,20 @@ jobs:
       # O Pages serve o site em /<nome-do-repositorio>/, então o build
       # precisa gerar os caminhos com esse prefixo. VITE_API_URL vem de um secret
       # do repositório (Settings > Secrets and variables > Actions) com a URL
-      # pública da almoxarifado-api depois do deploy dela (ex: Railway).
+      # pública da almoxarifado-api depois do deploy dela (no Render).
       - name: Build
         run: npm run build
         env:
           BASE_PATH: /${{ github.event.repository.name }}/
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
+
+      # Demonstração pública em /<repo>/demo/: mesma interface com o back-end falso
+      # (src/api/apiMock.ts), pra quem quiser conhecer o app sem ter login no sistema real.
+      - name: Build da demo
+        run: npx vite build --outDir dist/demo --emptyOutDir false
+        env:
+          BASE_PATH: /${{ github.event.repository.name }}/demo/
+          VITE_MOCK_API: "true"
 
       - uses: actions/configure-pages@v5
 

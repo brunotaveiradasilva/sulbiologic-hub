@@ -1,0 +1,55 @@
+import { DetalhesMeta } from './DetalhesMeta'
+import { Realizado } from './Realizado'
+import { formatarValorMeta } from '../../shared/lib/unidadeMeta'
+import type { Meta, MetaRepresentante } from '../../types'
+import { FaixaProgresso } from '../../shared/components/FaixaProgresso'
+
+interface Props {
+  representanteNome: string
+  meta: Meta
+  atribuicao: MetaRepresentante | null
+  /** null em mês fechado: a linha fica só pra consulta, sem o botão Editar. */
+  aoEditar: (() => void) | null
+}
+
+/**
+ * Linha da tabela de metas (um representante × uma meta). O valor da Meta muda pelo botão Editar (abre um
+ * diálogo com confirmação); o Realizado chega da API (sincronização com a ADS) e é só leitura.
+ */
+export function LinhaMetaRepresentante({ representanteNome, meta, atribuicao, aoEditar }: Props) {
+  const metaNum = atribuicao?.valorMeta ?? 0
+  const realizadoNum = atribuicao?.valorRealizado ?? 0
+  const falta = Math.max(0, metaNum - realizadoNum)
+  const formatar = (n: number) => formatarValorMeta(n, meta.unidade)
+  const percentual = metaNum > 0 ? (realizadoNum / metaNum) * 100 : null
+
+  return (
+    <tr>
+      <td className="cell-material col-nome">{representanteNome}</td>
+      <td className="col-sub">
+        {meta.nome}
+        <DetalhesMeta meta={meta} />
+      </td>
+      {/* Meta 0 é "sem meta": a sincronização cria a linha só pra guardar o realizado. */}
+      <td className="num col-meta" data-rotulo="Meta">{percentual === null ? '—' : formatar(metaNum)}</td>
+      <td className="num col-realizado" data-rotulo="Realizado">
+        <Realizado meta={meta} atribuicao={atribuicao} texto={formatar(realizadoNum)} />
+      </td>
+      <td className="num col-falta" data-rotulo="Falta">{percentual === null ? '—' : formatar(falta)}</td>
+      <td className="num col-progresso">
+        <div className="meta-progress-cell">
+          <FaixaProgresso percentual={percentual} />
+        </div>
+      </td>
+      <td className="actions-cell col-acoes">
+        {aoEditar ? (
+          <div className="row-actions">
+            <button className="btn btn-sm btn-ghost" onClick={aoEditar}>
+              Editar
+            </button>
+          </div>
+        ) : null}
+      </td>
+    </tr>
+  )
+}
