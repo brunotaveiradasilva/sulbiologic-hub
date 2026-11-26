@@ -812,6 +812,12 @@
   .meta-card .table-scroll { overflow-x: auto; border-top: 1px solid var(--divider); }
   .meta-card table { min-width: 620px; }
   .meta-card .table-wrap { border: 0; border-radius: 0; box-shadow: none; }
+  /* Por fornecedor: um card por meta; colunas com a mesma largura em todos os cards, pra ler de cima a baixo. */
+  .tabela-metas-fornecedor { table-layout: fixed; width: 100%; }
+  .tabela-metas-fornecedor .col-w-nome { width: 30%; }
+  .tabela-metas-fornecedor .col-w-progresso { width: 20%; }
+  .tabela-metas-fornecedor .col-w-acoes { width: 90px; }
+  .meta-card-head .meta-detalhe { margin-top: 0; }
   /* Sem a linha de info entre os filtros e o conteúdo, completa o espaço que ela dava. */
   .consulta-filtros + .meta-kpis, .consulta-filtros + .meta-card { margin-top: 8px; }
   /* Larguras fixas: com um card por fornecedor, as colunas ficam alinhadas de um card pro outro. */
@@ -1130,6 +1136,9 @@
     }
     /* Sem botões na linha, o nome usa a largura toda. */
     .tabela-vira-cartao tbody tr:has(.col-acoes:empty) { grid-template-areas: "nome nome nome" "sub sub sub" "prog prog prog" "meta real falta"; }
+    /* Por fornecedor o nome da meta está no card, então a linha não tem a área "sub". */
+    .tabela-metas-fornecedor tbody tr { grid-template-areas: "nome nome acoes" "prog prog prog" "meta real falta"; }
+    .tabela-metas-fornecedor tbody tr:has(.col-acoes:empty) { grid-template-areas: "nome nome nome" "prog prog prog" "meta real falta"; }
     .tabela-vira-cartao tbody tr:last-child { border-bottom: 0; }
     .tabela-vira-cartao tbody tr:hover { background: none; }
     .tabela-vira-cartao tbody td, .tabela-vira-cartao tbody td:first-child {
