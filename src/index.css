@@ -428,6 +428,8 @@
     color: var(--st-atrasado); font-size: 14px;
   }
   .banner-erro .btn { flex-shrink: 0; }
+  /* Tela aberta com a cópia salva no aparelho enquanto a API não responde (AvisoDadosSalvos). */
+  .aviso-dados-salvos { margin: -12px 0 16px; }
 
   .view-head {
     display: flex; align-items: flex-end; justify-content: space-between;

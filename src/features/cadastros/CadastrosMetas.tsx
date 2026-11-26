@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { useMetas } from '../metas/useMetas'
 import { EstadoVazio } from '../../shared/components/EstadoVazio'
+import { AvisoDadosSalvos } from '../../shared/components/AvisoDadosSalvos'
 import { TabelaFornecedores } from './TabelaFornecedores'
 import { FormularioFornecedor } from './FormularioFornecedor'
 import { TabelaRepresentantes } from './TabelaRepresentantes'
@@ -99,6 +100,8 @@ export function CadastrosMetas({ subaba, abas }: Props) {
           </button>
         </div>
       ) : null}
+
+      <AvisoDadosSalvos salvoEm={metas.dadosSalvosEm} atualizando={metas.carregando} />
 
       {abas}
 
