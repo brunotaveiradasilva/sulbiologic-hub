@@ -3,9 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <!-- Barra do sistema (Android/iOS) com a cor do fundo da tela, como nos apps; no escuro, o marinho do pátio. -->
-    <meta name="theme-color" content="#F4F6F9" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#08121F" media="(prefers-color-scheme: dark)" />
+    <!-- Barra do sistema (Android/iOS) com a cor do fundo da tela, como nos apps; no escuro, o quase preto. -->
+    <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0A0A0A" media="(prefers-color-scheme: dark)" />
     <!-- Instalável na tela inicial: abre em tela cheia, sem a barra do navegador. -->
     <link rel="manifest" href="%BASE_URL%manifest.webmanifest" />
     <link rel="apple-touch-icon" href="%BASE_URL%apple-touch-icon.png" />
@@ -14,14 +14,18 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="SulBiologic" />
     <meta name="description" content="SulBiologic Hub: agendamento de materiais, metas por fornecedor e representante, e checklist." />
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%230071E3'/><text x='50' y='50' dy='.35em' text-anchor='middle' font-family='Arial,Helvetica,sans-serif' font-weight='700' font-size='66' fill='white'>S</text></svg>" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-    />
+    <link rel="icon" type="image/svg+xml" href="%BASE_URL%icone.svg" />
     <title>SulBiologic Hub</title>
+    <!-- Tema escolhido no menu da conta (src/shared/tema.ts), aplicado antes de desenhar pra não piscar. -->
+    <script>
+      try {
+        var t = localStorage.getItem('sulbiologic-hub:tema')
+        if (t === 'claro' || t === 'escuro') {
+          document.documentElement.dataset.theme = t === 'escuro' ? 'dark' : 'light'
+          document.querySelectorAll('meta[name="theme-color"]').forEach(function (m) { m.content = t === 'escuro' ? '#0A0A0A' : '#FFFFFF' })
+        }
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

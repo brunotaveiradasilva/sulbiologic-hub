@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { MODO_DEMO } from '../../api/api'
+import { Logo } from '../../shared/components/Logo'
 
 interface Props {
   entrando: boolean
@@ -22,8 +23,11 @@ export function TelaLogin({ entrando, erro, aoEntrar }: Props) {
     <div className="login-page">
       <form className="login-card" onSubmit={enviar}>
         <div className="login-brand">
-          <h1>SulBiologic Hub</h1>
-          <span className="sub">entre para continuar</span>
+          <Logo size={21} />
+          <div>
+            <h1>Entrar no Hub</h1>
+            <span className="sub">Use seu usuário e senha.</span>
+          </div>
         </div>
 
         {MODO_DEMO ? (
