@@ -24,6 +24,7 @@ import { PainelMetas } from '../features/metas/PainelMetas'
 import { PainelCampanhas } from '../features/campanhas/PainelCampanhas'
 import { PainelDados } from '../features/dados/PainelDados'
 import { MenuLateral, type AbaPrincipal } from './MenuLateral'
+import { BarraTopo } from './BarraTopo'
 import { PaginaInicial, type Destino } from './PaginaInicial'
 import type { Agendamento, Filtro, Material, MeuLogin, MeusDados } from '../types'
 
@@ -152,6 +153,7 @@ export function PainelAlmoxarifado({
 
   return (
     <div className="app-shell">
+      <BarraTopo aba={aba} />
       <main>
         {app.erro ? (
           <div className="banner-erro" role="alert">

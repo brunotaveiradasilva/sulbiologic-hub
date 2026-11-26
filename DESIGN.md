@@ -29,4 +29,17 @@ Cantos quase retos (`--radius` 4px, `--radius-lg` 6px; `--pill` também 4px). Di
 
 ## Marca no menu
 
-"SulBiologic" largo, faixa branca de 5px, "HUB" espaçado — o desenho do logo refeito em tipo, em branco sobre o azul. No celular (≤760px) o menu encolhe para 68px só com ícones e a inicial.
+"SulBiologic" largo, faixa branca de 5px, "HUB" espaçado — o desenho do logo refeito em tipo, em branco sobre o azul.
+
+## Celular (≤760px): cara de app
+
+A mesma lataria, com a forma mais macia que se espera de um app. O computador não muda.
+
+- **Barra de baixo** azul (`--rail`), com no máximo 4 seções + "Mais"/conta (`MAX_NA_BARRA` em `MenuLateral.tsx`). Na seção atual, o ícone fica dentro de uma pílula branca. O que não cabe (Dados, Cadastros) vai para a folha do "Mais", junto com Minha conta, Usuários e Sair.
+- **Folhas** (o "Mais" e os diálogos) sobem de baixo, com cantos de 20px, alça e véu escuro por trás.
+- **Barra do topo** (`BarraTopo.tsx`): fica transparente enquanto o título grande está à vista. Quando ele sai rolando, ela vira chapa `--ground`, com o título pequeno e uma linha embaixo. Trocar de seção volta a tela ao topo.
+- **Abas da seção** viram chips que rolam de lado e ficam presos sob a barra do topo. A aba atual é preenchida em `--ink`, nunca em azul.
+- **Cantos**: `--radius` 10px e `--radius-lg` 16px só no celular. A faixa de progresso continua reta.
+- **Filtros** ficam dois por linha. Nos cartões de meta, os números de meta, realizado e falta ficam numa linha só.
+- **Toque**: sem o flash do navegador, o que se aperta afunda um pouco e cada seção entra subindo de leve. Tudo isso respeita `prefers-reduced-motion`.
+- **Instalável (PWA)**: `public/manifest.webmanifest` e os ícones `public/icone-*.png` / `apple-touch-icon.png`, gerados do logo sobre fundo branco. Instalado, o hub abre em tela cheia. Não tem service worker (sem cache offline).

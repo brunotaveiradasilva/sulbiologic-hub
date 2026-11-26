@@ -37,6 +37,9 @@ interface Props {
   aoSair: () => void
 }
 
+/** Quantas seções cabem na barra de baixo do celular sem apertar os nomes (fora a conta/Mais). */
+const MAX_NA_BARRA = 4
+
 /** Menu vertical fixo à esquerda: navegação principal em cima, conta logada (com menu) no rodapé. */
 export function MenuLateral({
   aba,
@@ -152,8 +155,14 @@ export function MenuLateral({
       : []),
   ]
 
+  // No celular a barra de baixo mostra no máximo 4 seções + a conta; o que sobrar (Dados e Cadastros
+  // do admin) vai pra folha do "Mais", junto com Minha conta e Sair.
+  const naBarra = secoes.length > MAX_NA_BARRA ? secoes.slice(0, MAX_NA_BARRA) : secoes
+  const excedentes = secoes.slice(naBarra.length)
+  const excedenteAtivo = excedentes.some((s) => s.aba === aba) || aba === 'conta'
+
   return (
-    <aside className="menu-lateral" style={{ '--itens': secoes.length } as CSSProperties}>
+    <aside className="menu-lateral" style={{ '--itens': naBarra.length } as CSSProperties}>
       <div className="menu-lateral-marca">
         <span className="marca-nome">SulBiologic</span>
         <span className="marca-faixa" aria-hidden="true" />
@@ -161,15 +170,16 @@ export function MenuLateral({
       </div>
 
       <nav className="menu-lateral-nav" aria-label="Navegação principal">
-        {secoes.map((secao) => {
+        {secoes.map((secao, i) => {
           const ativa = aba === secao.aba
           const aberta = ativa && !recolhida
           const temSubitens = secao.subitens.length > 0
+          const excedente = i >= naBarra.length
           return (
             <Fragment key={secao.aba}>
               <button
                 type="button"
-                className={`menu-lateral-item${ativa ? ' is-ativo' : ''}`}
+                className={`menu-lateral-item${ativa ? ' is-ativo' : ''}${excedente ? ' so-desktop' : ''}`}
                 aria-current={ativa ? 'page' : undefined}
                 aria-expanded={ativa && temSubitens ? aberta : undefined}
                 onClick={() => clicarSecao(secao.aba)}
@@ -214,11 +224,35 @@ export function MenuLateral({
 
       <div className="menu-lateral-conta" ref={containerRef}>
         {aberto ? (
+          <button type="button" className="menu-folha-fundo so-celular" aria-label="Fechar" tabIndex={-1} onClick={() => setAberto(false)} />
+        ) : null}
+        {aberto ? (
           <div className="menu-dropdown" role="menu">
+            <span className="menu-folha-alca so-celular" aria-hidden="true" />
             <div className="menu-dropdown-usuario">
               {nomeExibido}
               {nomeExibido !== usuario ? <span className="usuario-login">{usuario}</span> : null}
             </div>
+            {excedentes.length ? (
+              <div className="menu-folha-secoes so-celular">
+                {excedentes.map((secao) => (
+                  <button
+                    key={secao.aba}
+                    type="button"
+                    role="menuitem"
+                    className={aba === secao.aba ? 'is-ativo' : undefined}
+                    aria-current={aba === secao.aba ? 'page' : undefined}
+                    onClick={() => {
+                      setAberto(false)
+                      if (secao.aba !== aba) aoMudarAba(secao.aba)
+                    }}
+                  >
+                    {secao.icone}
+                    {secao.rotulo}
+                  </button>
+                ))}
+              </div>
+            ) : null}
             <button
               type="button"
               role="menuitem"
@@ -257,16 +291,16 @@ export function MenuLateral({
 
         <button
           type="button"
-          className={`menu-lateral-rodape${aberto ? ' is-ativo' : ''}`}
+          className={`menu-lateral-rodape${aberto ? ' is-ativo' : ''}${excedenteAtivo ? ' is-atual' : ''}`}
           onClick={() => setAberto((a) => !a)}
-          aria-label="Menu do usuário"
+          aria-label={excedentes.length ? 'Mais opções e conta' : 'Menu do usuário'}
           aria-expanded={aberto}
         >
           <span className="avatar-btn" aria-hidden="true">
             {avatar ? <img src={avatar} alt="" /> : <span>{nomeExibido.charAt(0).toUpperCase()}</span>}
           </span>
           <span className="menu-lateral-usuario">{nomeExibido}</span>
-          <span className="menu-lateral-rotulo-curto" aria-hidden="true">Conta</span>
+          <span className="menu-lateral-rotulo-curto" aria-hidden="true">{excedentes.length ? 'Mais' : 'Conta'}</span>
         </button>
       </div>
     </aside>
