@@ -1,4 +1,3 @@
-import { DetalhesMeta } from './DetalhesMeta'
 import { Realizado } from './Realizado'
 import { formatarValorMeta } from '../../shared/lib/unidadeMeta'
 import type { Meta, MetaRepresentante } from '../../types'
@@ -13,7 +12,7 @@ interface Props {
 }
 
 /**
- * Linha da tabela de metas (um representante × uma meta). O valor da Meta muda pelo botão Editar (abre um
+ * Linha da tabela de metas (um representante × uma meta); o nome da meta fica no card em volta. O valor da Meta muda pelo botão Editar (abre um
  * diálogo com confirmação); o Realizado chega da API (sincronização com a ADS) e é só leitura.
  */
 export function LinhaMetaRepresentante({ representanteNome, meta, atribuicao, aoEditar }: Props) {
@@ -26,10 +25,6 @@ export function LinhaMetaRepresentante({ representanteNome, meta, atribuicao, ao
   return (
     <tr>
       <td className="cell-material col-nome">{representanteNome}</td>
-      <td className="col-sub">
-        {meta.nome}
-        <DetalhesMeta meta={meta} />
-      </td>
       {/* Meta 0 é "sem meta": a sincronização cria a linha só pra guardar o realizado. */}
       <td className="num col-meta" data-rotulo="Meta">{percentual === null ? '—' : formatar(metaNum)}</td>
       <td className="num col-realizado" data-rotulo="Realizado">

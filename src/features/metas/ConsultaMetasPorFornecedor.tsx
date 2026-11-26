@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { EstadoVazio } from '../../shared/components/EstadoVazio'
+import { DetalhesMeta } from './DetalhesMeta'
 import { DialogoCopiarMetasMes } from './DialogoCopiarMetasMes'
 import { DialogoEditarMetaRepresentante } from './DialogoEditarMetaRepresentante'
 import { LinhaMetaRepresentante } from './LinhaMetaRepresentante'
@@ -21,8 +22,8 @@ interface Props {
 }
 
 /**
- * Uma tabela só com os representantes de um fornecedor escolhido no mês escolhido, uma linha por
- * representante e meta — o valor de meta muda por um diálogo com confirmação, e dá pra trazer os
+ * Os representantes de um fornecedor escolhido no mês escolhido, separados num card por meta (mesmo
+ * com "Todas as metas"), uma linha por representante — o valor de meta muda por um diálogo com confirmação, e dá pra trazer os
  * valores do mês anterior de uma vez.
  */
 export function ConsultaMetasPorFornecedor({
@@ -147,34 +148,53 @@ export function ConsultaMetasPorFornecedor({
           />
         </div>
       ) : (
-        <div className="table-wrap table-wrap-compacta">
-          <table className="tabela-vira-cartao">
-            <thead>
-              <tr>
-                <th>Representante</th>
-                <th>Meta</th>
-                <th className="num">Valor da meta</th>
-                <th className="num">Realizado</th>
-                <th className="num">Falta</th>
-                <th className="num">Progresso</th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {representantesDoFornecedor.flatMap((v) =>
-                metasNaTabela.map((meta) => (
-                  <LinhaMetaRepresentante
-                    key={`${v.id}:${meta.id}`}
-                    representanteNome={v.nome}
-                    meta={meta}
-                    atribuicao={atribuicaoDe(v.id, meta.id)}
-                    aoEditar={fechado || !aoSalvar ? null : () => setEditando({ representante: v, meta })}
-                  />
-                )),
-              )}
-            </tbody>
-          </table>
-        </div>
+        // Um card por meta (na ordem do admin), cada um com os representantes do fornecedor.
+        metasNaTabela.map((meta) => (
+          <div className="meta-card" key={meta.id}>
+            <div className="meta-card-head">
+              <div>
+                <h3>{meta.nome}</h3>
+                <DetalhesMeta meta={meta} />
+              </div>
+              <span className="meta-badge">{rotuloMesCurto(mes)}</span>
+            </div>
+            <div className="table-scroll">
+              <div className="table-wrap">
+                <table className="tabela-vira-cartao tabela-metas-fornecedor">
+                  <colgroup>
+                    <col className="col-w-nome" />
+                    <col />
+                    <col />
+                    <col />
+                    <col className="col-w-progresso" />
+                    <col className="col-w-acoes" />
+                  </colgroup>
+                  <thead>
+                    <tr>
+                      <th>Representante</th>
+                      <th className="num">Valor da meta</th>
+                      <th className="num">Realizado</th>
+                      <th className="num">Falta</th>
+                      <th className="num">Progresso</th>
+                      <th />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {representantesDoFornecedor.map((v) => (
+                      <LinhaMetaRepresentante
+                        key={v.id}
+                        representanteNome={v.nome}
+                        meta={meta}
+                        atribuicao={atribuicaoDe(v.id, meta.id)}
+                        aoEditar={fechado || !aoSalvar ? null : () => setEditando({ representante: v, meta })}
+                      />
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        ))
       )}
 
       {editando && aoSalvar ? (
