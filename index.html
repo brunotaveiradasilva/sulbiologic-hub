@@ -3,7 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#104D90" />
+    <!-- Barra do sistema (Android/iOS) com a cor do fundo da tela, como nos apps; no escuro, o marinho do pátio. -->
+    <meta name="theme-color" content="#F4F6F9" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#08121F" media="(prefers-color-scheme: dark)" />
+    <!-- Instalável na tela inicial: abre em tela cheia, sem a barra do navegador. -->
+    <link rel="manifest" href="%BASE_URL%manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="%BASE_URL%apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="SulBiologic" />
     <meta name="description" content="SulBiologic Hub: agendamento de materiais, metas por fornecedor e representante, e checklist." />
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%230071E3'/><text x='50' y='50' dy='.35em' text-anchor='middle' font-family='Arial,Helvetica,sans-serif' font-weight='700' font-size='66' fill='white'>S</text></svg>" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />

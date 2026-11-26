@@ -273,47 +273,109 @@
   .avatar-btn:hover { border-color: var(--line-strong); }
   .avatar-btn img { width: 100%; height: 100%; object-fit: cover; }
 
-  /* Celular: o menu vira uma barra fixa embaixo (ícone + nome), ao alcance do polegar, e a tela
-     inteira fica pro conteúdo. Os subitens aparecem como abas no topo de cada seção (.tabs-so-celular). */
+  /* Só num tamanho: .so-celular some no computador, .so-desktop some no celular. */
+  .so-celular { display: none; }
+
+  /* Celular: o menu vira a barra azul fixa embaixo, como nos apps — no máximo 4 seções + "Mais"/conta,
+     ícone dentro de uma pílula que acende na seção atual. O que não cabe (Dados, Cadastros) vai pra folha
+     do "Mais". Os subitens aparecem como abas no topo de cada seção (.tabs-so-celular). */
   @media (max-width: 760px) {
+    .so-desktop { display: none !important; }
+    .so-celular { display: revert; }
+
     .menu-lateral {
       position: fixed; inset: auto 0 0 0; top: auto; z-index: 50;
       width: auto; height: auto; flex-direction: row; align-items: stretch; gap: 0;
-      padding: 4px 4px calc(4px + env(safe-area-inset-bottom));
-      box-shadow: 0 -6px 20px -12px rgba(6, 20, 38, .45);
+      padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
+      box-shadow: 0 -1px 0 var(--rail-linha);
     }
     .menu-lateral-marca { display: none; }
-    /* A conta vale uma opção a mais: a navegação cresce na proporção do número de seções. */
-    .menu-lateral-nav { flex: var(--itens, 6) 1 0; flex-direction: row; gap: 2px; min-width: 0; }
+    .menu-lateral-nav { flex: var(--itens, 4) 1 0; flex-direction: row; gap: 0; min-width: 0; }
     .menu-lateral-item, .menu-lateral-rodape {
-      flex: 1 1 0; min-width: 0; min-height: 56px;
-      flex-direction: column; justify-content: center; align-items: center; gap: 3px;
-      padding: 6px 0; text-align: center;
+      flex: 1 1 0; min-width: 0; min-height: 58px;
+      flex-direction: column; justify-content: center; align-items: center; gap: 4px;
+      padding: 4px 0; text-align: center; border-radius: 0;
+      -webkit-tap-highlight-color: transparent;
     }
-    /* Na barra vale o nome curto (cabe com as 7 opções do admin); o nome inteiro continua pro leitor de tela. */
+    .menu-lateral-item:hover, .menu-lateral-rodape:hover, .menu-lateral-rodape.is-ativo { background: none; }
+    .menu-lateral-item.is-ativo { background: none; color: var(--rail-ink); font-weight: 700; }
+    /* A pílula atrás do ícone: some quando não é a seção atual, acende branca quando é. */
+    .menu-lateral-item svg {
+      box-sizing: content-box; padding: 5px 18px; border-radius: 999px;
+      transition: background .25s cubic-bezier(.2, .8, .2, 1), color .2s ease, transform .2s cubic-bezier(.2, .8, .2, 1);
+    }
+    .menu-lateral-item.is-ativo svg { background: var(--rail-ativo); color: var(--rail-ativo-ink); }
+    .menu-lateral-item:active svg, .menu-lateral-rodape:active .avatar-btn { transform: scale(.9); }
+
+    /* Na barra vale o nome curto; o nome inteiro continua pro leitor de tela. */
     .menu-lateral-rotulo, .menu-lateral-usuario {
       position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
     }
     .menu-lateral .menu-lateral-rotulo-curto {
       display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-      font-size: 11px; line-height: 1.2; letter-spacing: 0; font-weight: inherit;
-      font-stretch: 82%; /* Archivo é variável na largura: um pouco estreita pra "Campanha" caber em 360px. */
+      font-size: 12px; line-height: 1.2; letter-spacing: .01em; font-weight: inherit;
     }
     .menu-lateral-rodape .menu-lateral-rotulo-curto { font-weight: 500; color: var(--rail-ink-2); }
-    .menu-lateral-rodape.is-ativo .menu-lateral-rotulo-curto { color: var(--rail-ink); }
+    .menu-lateral-rodape.is-atual .menu-lateral-rotulo-curto,
+    .menu-lateral-rodape.is-ativo .menu-lateral-rotulo-curto { color: var(--rail-ink); font-weight: 700; }
     .menu-lateral-item span.menu-lateral-seta { display: none; }
     .menu-lateral-sanfona { display: none; }
-    .menu-lateral-conta { display: flex; flex: 1 1 0; min-width: 0; margin: 0 0 0 2px; padding: 0; border: 0; }
+    .menu-lateral-conta { display: flex; flex: 1 1 0; min-width: 0; margin: 0; padding: 0; border: 0; position: static; }
     .menu-lateral-conta .menu-lateral-rodape { position: relative; }
-    .menu-lateral .avatar-btn { width: 20px; height: 20px; font-size: 10px; border-width: 0; }
-    .menu-dropdown { left: auto; right: 0; min-width: 230px; }
-    .menu-dropdown button[role="menuitem"] { padding: 12px 14px; font-size: 15px; }
+    /* A foto ocupa o lugar da pílula: mesmo tamanho que ícone + pílula, com anel branco quando é a atual. */
+    .menu-lateral .avatar-btn {
+      width: 30px; height: 30px; font-size: 12px; border-width: 0;
+      box-shadow: 0 0 0 2px transparent; transition: box-shadow .2s ease, transform .2s cubic-bezier(.2, .8, .2, 1);
+    }
+    .menu-lateral-rodape.is-atual .avatar-btn, .menu-lateral-rodape.is-ativo .avatar-btn { box-shadow: 0 0 0 2px var(--rail-ativo); }
+
+    /* "Mais"/conta: folha que sobe de baixo, sobre um véu escuro. */
+    .menu-folha-fundo {
+      position: fixed; inset: 0; z-index: 60; border: 0; padding: 0; cursor: default;
+      background: rgba(4, 14, 28, .5); animation: veu-entrar .25s ease both;
+    }
+    .menu-dropdown {
+      position: fixed; left: 0; right: 0; bottom: 0; top: auto; z-index: 61; min-width: 0;
+      max-height: 85dvh; overflow-y: auto;
+      border: 0; border-radius: 20px 20px 0 0;
+      padding: 8px 12px calc(16px + env(safe-area-inset-bottom));
+      animation: folha-subir .32s cubic-bezier(.2, .8, .2, 1) both;
+    }
+    .menu-folha-alca { display: block; width: 36px; height: 4px; margin: 2px auto 10px; border-radius: 2px; background: var(--line-strong); }
+    .menu-dropdown-usuario { padding: 4px 8px 14px; margin-bottom: 10px; font-size: 17px; font-weight: 750; font-stretch: var(--larga); }
+    .menu-dropdown-usuario .usuario-login { display: block; font-size: 13px; font-weight: 500; font-stretch: 100%; color: var(--ink-3); }
+    .menu-folha-secoes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px; }
+    .menu-dropdown .menu-folha-secoes button[role="menuitem"] {
+      display: flex; flex-direction: column; align-items: flex-start; gap: 10px;
+      padding: 14px; border-radius: 14px; background: var(--surface-2);
+      font-size: 15px; font-weight: 650;
+    }
+    .menu-folha-secoes button svg { color: var(--accent); }
+    .menu-dropdown .menu-folha-secoes button.is-ativo { background: var(--accent-soft); box-shadow: inset 0 0 0 1.5px var(--accent); }
+    .menu-dropdown button[role="menuitem"] { padding: 14px 12px; font-size: 16px; border-radius: 12px; }
+    .menu-dropdown button[role="menuitem"]:active { background: var(--surface-2); }
+
+    /* Abas da seção: chips que rolam de lado, presos logo abaixo da barra do topo. */
     nav.tabs.tabs-so-celular {
-      display: flex; overflow-x: auto; scrollbar-width: none;
-      margin-left: -16px; margin-right: -16px; padding: 0 16px;
+      display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; border-bottom: 0;
+      position: sticky; top: var(--barra-topo-h); z-index: 20;
+      margin: 0 -16px 20px; padding: 6px 16px 10px; background: var(--ground);
     }
     nav.tabs.tabs-so-celular::-webkit-scrollbar { display: none; }
-    nav.tabs.tabs-so-celular button { flex: none; white-space: nowrap; padding: 10px 12px 12px; font-size: 15px; }
+    nav.tabs.tabs-so-celular button {
+      flex: none; white-space: nowrap; margin: 0; align-self: auto;
+      padding: 8px 16px; border: 1px solid var(--line); border-radius: 999px;
+      background: var(--surface); color: var(--ink-2); font-size: 14px; font-weight: 600;
+      -webkit-tap-highlight-color: transparent;
+      transition: background .2s ease, color .2s ease, border-color .2s ease, transform .15s ease;
+    }
+    nav.tabs.tabs-so-celular button:active { transform: scale(.96); }
+    nav.tabs.tabs-so-celular button[aria-selected="true"] { background: var(--ink); border-color: var(--ink); color: var(--surface); font-weight: 650; }
+  }
+  @keyframes folha-subir { from { transform: translateY(100%); } }
+  @keyframes veu-entrar { from { opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) {
+    .menu-dropdown, .menu-folha-fundo { animation: none; }
   }
 
   /* ---------- login ---------- */
@@ -1001,12 +1063,22 @@
     .btn-sm { min-height: 36px; }
     .icon-btn { min-width: 40px; min-height: 40px; }
 
-    .view-head { margin-bottom: 20px; gap: 12px; align-items: stretch; }
-    .view-head h2 { font-size: 28px; }
-    .view-head > .btn { width: 100%; }
+    /* Título grande da tela (no jeito dos apps); a ação principal fica ao lado dele, compacta. */
+    .view-head { margin-bottom: 18px; gap: 12px 16px; align-items: flex-end; }
+    .view-head h2 { font-size: 34px; letter-spacing: -.025em; }
+    .view-head p { font-size: 15px; margin-top: 6px; }
+    .view-head > .btn { min-height: 38px; padding: 6px 14px; font-size: 13.5px; }
 
-    .consulta-filtro { max-width: none; }
-    .consulta-filtros .consulta-filtro, .consulta-filtros .consulta-filtro-mes { flex: 1 1 100%; min-width: 0; }
+    /* Filtros lado a lado, em dois por linha, em vez de uma pilha de caixas na largura toda. */
+    .consulta-filtro { max-width: none; margin-bottom: 12px; }
+    .consulta-filtros { gap: 0 10px; }
+    .consulta-filtros .consulta-filtro, .consulta-filtros .consulta-filtro-mes { flex: 1 1 calc(50% - 5px); min-width: 0; }
+    .consulta-filtro label { font-size: 12px; font-weight: 600; }
+    /* Na metade da largura o texto escolhido corta com "…" em vez de vazar da caixa. */
+    .field.consulta-filtro { grid-template-columns: minmax(0, 1fr); }
+    .seletor-multiplo-botao { min-width: 0; padding: 11px 12px; font-size: 15.5px; }
+    .seletor-multiplo-botao span { min-width: 0; }
+    .consulta-filtro select { font-size: 15.5px; padding: 11px 32px 11px 12px; background-position: right 12px center; text-overflow: ellipsis; }
     .consulta-filtros .consulta-exportar { margin: 0 0 14px; width: 100%; }
     .consulta-filtros .consulta-acoes { margin-left: 0; width: 100%; }
     .consulta-acoes .btn { flex: 1 1 auto; }
@@ -1047,10 +1119,12 @@
     .tabela-vira-cartao thead { display: none; }
     .tabela-vira-cartao tbody { display: block; }
     .tabela-vira-cartao tbody tr {
-      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
-      grid-template-areas: "nome nome nome acoes" "sub sub sub sub" "prog prog prog prog" "meta real falta falta";
+      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-areas: "nome nome acoes" "sub sub sub" "prog prog prog" "meta real falta";
       gap: 10px 12px; padding: 16px; border-bottom: 1px solid var(--divider); cursor: default;
     }
+    /* Sem botões na linha, o nome usa a largura toda. */
+    .tabela-vira-cartao tbody tr:has(.col-acoes:empty) { grid-template-areas: "nome nome nome" "sub sub sub" "prog prog prog" "meta real falta"; }
     .tabela-vira-cartao tbody tr:last-child { border-bottom: 0; }
     .tabela-vira-cartao tbody tr:hover { background: none; }
     .tabela-vira-cartao tbody td, .tabela-vira-cartao tbody td:first-child {
@@ -1069,7 +1143,9 @@
     .tabela-vira-cartao .col-meta { grid-area: meta; }
     .tabela-vira-cartao .col-realizado { grid-area: real; }
     .tabela-vira-cartao .col-falta { grid-area: falta; }
-    .tabela-vira-cartao .col-acoes { grid-area: acoes; align-self: start; }
+    .tabela-vira-cartao .col-acoes { grid-area: acoes; align-self: start; justify-self: end; }
+    /* Os três números numa linha só, sem quebrar "R$ 80.000,00" no meio. */
+    .tabela-vira-cartao :is(.col-meta, .col-realizado, .col-falta) { font-size: 14px; white-space: nowrap; overflow-wrap: normal; }
     .tabela-vira-cartao .col-acoes:empty { display: none; }
     .tabela-vira-cartao .meta-progress-cell { min-width: 0; }
     .tabela-vira-cartao .meta-progress-track { height: 26px; }
@@ -1087,4 +1163,51 @@
     .dlg-foot { padding: 14px 18px 18px; flex-wrap: wrap; }
     .dlg-foot .btn { flex: 1 1 0; }
     .dlg-foot .msg { flex-basis: 100%; margin: 0; }
+  }
+
+  /* ---------- celular com cara de app ---------- */
+  /* Mesma lataria, forma mais macia: no celular os cantos arredondam (cartões, campos, folhas), a tela
+     tem barra no topo que mostra o título quando o grande sai de vista, e cada toque responde. */
+  .barra-topo { display: none; }
+  @media (max-width: 760px) {
+    :root { --radius: 10px; --radius-lg: 16px; --barra-topo-h: calc(48px + env(safe-area-inset-top)); }
+
+    .barra-topo {
+      display: flex; align-items: flex-end; justify-content: center;
+      position: fixed; inset: 0 0 auto 0; z-index: 40; height: var(--barra-topo-h);
+      padding: env(safe-area-inset-top) 16px 12px;
+      background: transparent; box-shadow: 0 1px 0 transparent; pointer-events: none;
+      transition: box-shadow .2s ease, background-color .2s ease;
+    }
+    /* Parada no topo ela é transparente (o título grande aparece por baixo); rolando, vira chapa. */
+    .barra-topo.is-rolado { background: var(--ground); box-shadow: 0 1px 0 var(--line); }
+    .barra-topo-titulo {
+      font-family: var(--fs-display); font-stretch: var(--larga); font-weight: 750; font-size: 17px; letter-spacing: -.01em;
+      opacity: 0; transform: translateY(6px);
+      transition: opacity .2s ease, transform .3s cubic-bezier(.2, .8, .2, 1);
+    }
+    .barra-topo.is-rolado .barra-topo-titulo { opacity: 1; transform: none; }
+    /* Parado no topo, a barra está vazia: o título grande pode começar logo abaixo da área do relógio. */
+    main { padding-top: calc(env(safe-area-inset-top) + 24px); }
+
+    /* Toque: sem o flash azul do navegador; o que se aperta afunda um pouco. */
+    button, a, select, summary { -webkit-tap-highlight-color: transparent; }
+    .btn { transition: background .18s ease, border-color .18s ease, color .18s ease, opacity .18s ease, transform .12s ease; }
+    .btn:active { transform: scale(.97); }
+    .inicio-card-topo:active h3 { color: var(--accent); }
+
+    /* Cada seção entra subindo de leve, já visível desde o começo. */
+    .view { animation: tela-entrar .32s cubic-bezier(.2, .8, .2, 1) both; }
+
+    /* O diálogo-folha ganha a alça dos apps e sobe da borda. */
+    dialog[open] { animation: folha-subir .32s cubic-bezier(.2, .8, .2, 1) both; }
+    dialog::before { content: ""; display: block; width: 36px; height: 4px; margin: 8px auto 0; border-radius: 2px; background: var(--line-strong); }
+    dialog { border-radius: 20px 20px 0 0; }
+
+    .selo-demo { bottom: calc(76px + env(safe-area-inset-bottom)); right: 12px; }
+  }
+  @keyframes tela-entrar { from { opacity: .35; transform: translateY(8px); } }
+  @media (prefers-reduced-motion: reduce) {
+    .view, dialog[open] { animation: none; }
+    .barra-topo-titulo { transition: none; }
   }
