@@ -1,5 +1,7 @@
 import { Fragment, useEffect, useRef, useState, type CSSProperties } from 'react'
 import { IconeCadastros, IconeCampanhas, IconeDados, IconeInicio, IconeMateriais, IconeMetas } from './IconesMenu'
+import { Logo } from '../shared/components/Logo'
+import { SeletorTema } from '../shared/components/SeletorTema'
 import {
   SUBABAS_CAMPANHAS,
   SUBABAS_DADOS,
@@ -164,9 +166,7 @@ export function MenuLateral({
   return (
     <aside className="menu-lateral" style={{ '--itens': naBarra.length } as CSSProperties}>
       <div className="menu-lateral-marca">
-        <span className="marca-nome">SulBiologic</span>
-        <span className="marca-faixa" aria-hidden="true" />
-        <span className="marca-sub">Hub</span>
+        <Logo size={18} />
       </div>
 
       <nav className="menu-lateral-nav" aria-label="Navegação principal">
@@ -233,6 +233,7 @@ export function MenuLateral({
               {nomeExibido}
               {nomeExibido !== usuario ? <span className="usuario-login">{usuario}</span> : null}
             </div>
+            <SeletorTema />
             {excedentes.length ? (
               <div className="menu-folha-secoes so-celular">
                 {excedentes.map((secao) => (
