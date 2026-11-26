@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import * as api from '../../api/api'
 import { ErroApi, aoSessaoExpirar } from '../../api/api'
 import { limparSessao, salvarAvatar, salvarPerfil, salvarSessao, sessaoSalva } from './auth'
+import { limparCachesLocais } from '../../shared/lib/cacheLocal'
 import type { MeusDados, Role } from '../../types'
 
 /** Sessão do usuário: quem está logado (se alguém), seu papel, foto, e as ações de entrar/sair/trocar foto. */
@@ -15,6 +16,7 @@ export function useAuth() {
 
   const sair = useCallback(() => {
     limparSessao()
+    limparCachesLocais()
     setUsuario(null)
     setRole(null)
     setAvatar(null)

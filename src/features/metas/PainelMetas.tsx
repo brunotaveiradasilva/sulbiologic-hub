@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useMetas } from './useMetas'
 import { CarregandoTelaInteira } from '../../shared/components/CarregandoTelaInteira'
 import { EstadoVazio } from '../../shared/components/EstadoVazio'
+import { AvisoDadosSalvos } from '../../shared/components/AvisoDadosSalvos'
 import { ConsultaMetasPorRepresentante } from './ConsultaMetasPorRepresentante'
 import { ConsultaMetasPorFornecedor } from './ConsultaMetasPorFornecedor'
 import { mesAtual } from '../../shared/lib/mes'
@@ -53,6 +54,8 @@ export function PainelMetas({ subaba, aoMudarSubaba, isAdmin }: Props) {
           </button>
         </div>
       ) : null}
+
+      <AvisoDadosSalvos salvoEm={metas.dadosSalvosEm} atualizando={metas.carregando} />
 
       <nav className="tabs tabs-so-celular" role="tablist">
         {SUBABAS_METAS.map((s) => (

@@ -1,9 +1,20 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import * as api from '../../api/api'
 import { ErroApi } from '../../api/api'
 import type { MetaEntrada, MetaRepresentanteEntrada, RepresentanteEntrada } from '../../api/api'
+import { gravarCache, lerCache } from '../../shared/lib/cacheLocal'
 import { idTemporario } from '../../shared/lib/idTemporario'
 import type { Fornecedor, Meta, MetaRepresentante, Representante, TotalVendidoMensal } from '../../types'
+
+const NOME_CACHE = 'metas'
+
+interface DadosMetas {
+  fornecedores: Fornecedor[]
+  representantes: Representante[]
+  metas: Meta[]
+  metasRepresentante: MetaRepresentante[]
+  totaisVendidos: TotalVendidoMensal[]
+}
 
 function mensagemErro(erro: unknown): string {
   return erro instanceof ErroApi ? erro.message : 'Algo deu errado. Tente de novo.'
@@ -23,13 +34,26 @@ function mesclarPorId(atual: MetaRepresentante[], vindas: MetaRepresentante[]): 
  * depois; se a API recusar, desfaz e mostra o erro.
  */
 export function useMetas() {
-  const [fornecedores, setFornecedores] = useState<Fornecedor[]>([])
-  const [representantes, setRepresentantes] = useState<Representante[]>([])
-  const [metas, setMetas] = useState<Meta[]>([])
-  const [metasRepresentante, setMetasRepresentante] = useState<MetaRepresentante[]>([])
-  const [totaisVendidos, setTotaisVendidos] = useState<TotalVendidoMensal[]>([])
+  // Abre com a última cópia salva neste aparelho (se houver) e troca pela da API quando ela responder.
+  const [cache] = useState(() => lerCache<DadosMetas>(NOME_CACHE))
+  const [fornecedores, setFornecedores] = useState<Fornecedor[]>(cache?.dados.fornecedores ?? [])
+  const [representantes, setRepresentantes] = useState<Representante[]>(cache?.dados.representantes ?? [])
+  const [metas, setMetas] = useState<Meta[]>(cache?.dados.metas ?? [])
+  const [metasRepresentante, setMetasRepresentante] = useState<MetaRepresentante[]>(
+    cache?.dados.metasRepresentante ?? [],
+  )
+  const [totaisVendidos, setTotaisVendidos] = useState<TotalVendidoMensal[]>(cache?.dados.totaisVendidos ?? [])
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
+  /** Hora da cópia local que está na tela; null quando o que aparece já veio da API nesta visita. */
+  const [dadosSalvosEm, setDadosSalvosEm] = useState<Date | null>(cache?.salvoEm ?? null)
+  // Só grava no cache depois de uma carga completa da API — antes disso a tela tem a cópia antiga.
+  const veioDaApi = useRef(false)
+
+  useEffect(() => {
+    if (!veioDaApi.current) return
+    gravarCache<DadosMetas>(NOME_CACHE, { fornecedores, representantes, metas, metasRepresentante, totaisVendidos })
+  }, [fornecedores, representantes, metas, metasRepresentante, totaisVendidos])
 
   const carregarTudo = useCallback(async () => {
     setCarregando(true)
@@ -53,6 +77,8 @@ export function useMetas() {
       setMetas(metasCarregadas)
       setMetasRepresentante(metasRepresentanteCarregadas)
       setTotaisVendidos(totaisCarregados)
+      veioDaApi.current = true
+      setDadosSalvosEm(null)
     } catch (e) {
       setErro(mensagemErro(e))
     } finally {
@@ -290,6 +316,7 @@ export function useMetas() {
     totaisVendidos,
     carregando,
     erro,
+    dadosSalvosEm,
     tentarNovamente: carregarTudo,
     salvarFornecedor,
     removerFornecedor,
