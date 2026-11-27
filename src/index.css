@@ -129,6 +129,7 @@
   ::selection { background: color-mix(in srgb, var(--marca-clara) 35%, transparent); color: inherit; }
   * { scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
   a { color: var(--accent); text-underline-offset: 3px; }
+  a.menu-lateral-item, a.inicio-card-topo, a.btn, .menu-dropdown a[role="menuitem"] { text-decoration: none; }
 
   h1, h2, h3 { font-family: var(--fs-display); font-weight: 600; letter-spacing: -.015em; margin: 0; text-wrap: balance; }
 
@@ -248,11 +249,11 @@
     padding: 8px 12px 10px; margin-bottom: 4px; border-bottom: 1px solid var(--divider);
     font-size: 13px; font-weight: 650; color: var(--ink);
   }
-  .menu-dropdown button[role="menuitem"] {
+  .menu-dropdown [role="menuitem"] {
     display: block; width: 100%; text-align: left; background: none; border: 0; cursor: pointer;
     padding: 8px 12px; border-radius: var(--radius); font-size: 14px; color: var(--ink);
   }
-  .menu-dropdown button[role="menuitem"]:hover { background: var(--surface-2); }
+  .menu-dropdown [role="menuitem"]:hover { background: var(--surface-2); }
   /* Sair fica separado dos outros itens: ação que não se clica por engano. */
   .menu-dropdown-sair { color: var(--st-atrasado); }
   .menu-dropdown button.menu-dropdown-sair { margin-top: 9px; position: relative; color: var(--st-atrasado); }
@@ -354,14 +355,14 @@
     .menu-dropdown-usuario { padding: 4px 8px 14px; margin-bottom: 10px; font-size: 17px; font-weight: 600; letter-spacing: -.015em; }
     .menu-dropdown-usuario .usuario-login { display: block; font-size: 13px; font-weight: 500; font-stretch: 100%; color: var(--ink-3); }
     .menu-folha-secoes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px; }
-    .menu-dropdown .menu-folha-secoes button[role="menuitem"] {
+    .menu-dropdown .menu-folha-secoes [role="menuitem"] {
       display: flex; flex-direction: column; align-items: flex-start; gap: 10px;
       padding: 14px; border-radius: 14px; background: var(--surface-2);
       font-size: 15px; font-weight: 550;
     }
-    .menu-folha-secoes button svg { color: var(--accent); }
+    .menu-folha-secoes [role="menuitem"] svg { color: var(--accent); }
     .menu-dropdown .menu-folha-secoes button.is-ativo { background: var(--accent-soft); box-shadow: inset 0 0 0 1.5px var(--accent); }
-    .menu-dropdown button[role="menuitem"] { padding: 14px 12px; font-size: 16px; border-radius: 12px; }
+    .menu-dropdown [role="menuitem"] { padding: 14px 12px; font-size: 16px; border-radius: 12px; }
     .menu-dropdown button[role="menuitem"]:active { background: var(--surface-2); }
 
     /* Abas da seção: chips que rolam de lado, presos logo abaixo da barra do topo. */
@@ -456,8 +457,6 @@
   .inicio-card-icone { display: inline-flex; place-items: center; width: 34px; height: 34px; justify-content: center; align-items: center; border-radius: var(--radius); background: var(--accent-soft); color: var(--accent); }
   .inicio-card-icone svg { width: 18px; height: 18px; }
   .inicio-card-descricao { margin: 0; color: var(--ink-3); font-size: 14px; line-height: 1.5; flex: 1; max-width: 46ch; }
-  .inicio-card-alerta { margin: 0; font-size: 13px; font-weight: 500; color: var(--st-retirado); }
-  .inicio-card-alerta.is-atrasado { color: var(--st-atrasado); }
   .inicio-card-atalhos { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
 
   /* ---------- buttons ---------- */
@@ -544,7 +543,6 @@
   .cell-code { font-size: 12px; color: var(--ink-3); display: block; font-weight: 500; letter-spacing: .02em; margin-top: 3px; }
   .cell-obs { color: var(--ink-2); max-width: 30ch; }
   .date { font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .date .weekday { color: var(--ink-3); font-size: 12px; display: block; margin-top: 3px; }
   .actions-cell { cursor: default; }
   .row-actions { display: flex; gap: 8px; justify-content: flex-end; white-space: nowrap; }
   tr.is-late td { background: color-mix(in srgb, var(--st-atrasado) 7%, transparent); }
@@ -562,71 +560,6 @@
   .chip.retirado { --c: var(--st-retirado); }
   .chip.devolvido { --c: var(--st-devolvido); }
   .chip.atrasado { --c: var(--st-atrasado); }
-
-  /* ---------- calendário de agendamentos ---------- */
-  /* Mês em grade: cada semana é uma grade de 7 colunas, o dia ocupa a altura toda e as barras vão por cima. */
-  .cal {
-    background: var(--surface); border: 1px solid var(--line);
-    border-radius: var(--radius-lg); overflow-x: auto;
-  }
-  .cal-topo {
-    display: flex; align-items: center; gap: 8px; padding: 14px 20px;
-    border-bottom: 1px solid var(--line); position: sticky; left: 0;
-  }
-  .cal-titulo { margin: 0 auto 0 0; font-family: var(--fs-display); font-size: 17px; font-weight: 600; letter-spacing: -.015em; }
-  .cal-topo .btn { min-width: 36px; }
-  .cal-grade { min-width: 700px; }
-  .cal-dias-semana, .cal-semana { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
-  .cal-dias-semana { background: color-mix(in srgb, var(--surface-2) 50%, var(--surface)); border-bottom: 1px solid var(--line); }
-  .cal-dias-semana span {
-    padding: 8px 10px; font-size: 12.5px; font-weight: 500; color: var(--ink-3);
-  }
-  .cal-semana { grid-auto-rows: 26px; padding-bottom: 0; }
-  .cal-semana + .cal-semana { border-top: 1px solid var(--divider); }
-  .cal-dia {
-    display: flex; align-items: flex-start; padding: 3px 6px;
-    background: none; border: 0; border-left: 1px solid var(--divider);
-    font: inherit; color: var(--ink); text-align: left; cursor: pointer;
-    transition: background .15s ease;
-  }
-  .cal-dia:first-child { border-left: 0; }
-  .cal-dia:hover { background: color-mix(in srgb, var(--accent-soft) 60%, transparent); }
-  .cal-dia:focus-visible, .cal-barra:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
-  .cal-num {
-    display: inline-grid; place-items: center; min-width: 22px; height: 20px; padding: 0 4px;
-    border-radius: 6px; font-size: 12.5px; font-weight: 500; font-variant-numeric: tabular-nums;
-  }
-  .cal-dia.is-fora { background: color-mix(in srgb, var(--surface-2) 55%, transparent); }
-  .cal-dia.is-fora .cal-num { color: var(--ink-3); font-weight: 500; }
-  .cal-dia.is-hoje .cal-num { background: var(--accent); color: var(--accent-ink); }
-  .cal-barra {
-    --c: var(--st-agendado);
-    z-index: 1; min-width: 0; margin: 1px 4px; padding: 0 8px;
-    border: 0; border-left: 3px solid var(--c); border-radius: 5px;
-    background: color-mix(in srgb, var(--c) 18%, var(--surface));
-    font: inherit; font-size: 12.5px; font-weight: 500; line-height: 24px; color: var(--ink);
-    text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer;
-    transition: background .15s ease;
-  }
-  .cal-barra:hover { background: color-mix(in srgb, var(--c) 32%, var(--surface)); }
-  .cal-barra.retirado { --c: var(--st-retirado); }
-  .cal-barra.devolvido { --c: var(--st-devolvido); color: var(--ink-2); font-weight: 500; }
-  .cal-barra.atrasado { --c: var(--st-atrasado); }
-  /* Barra que atravessa a semana: sem ponta do lado em que continua. */
-  .cal-barra.vem-de-antes { margin-left: 0; border-left: 0; border-top-left-radius: 0; border-bottom-left-radius: 0; }
-  .cal-barra.continua { margin-right: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; }
-  .cal-barra-quem { font-weight: 500; color: var(--ink-2); }
-  .cal-rodape {
-    display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 12px 20px;
-    border-top: 1px solid var(--line); position: sticky; left: 0;
-  }
-  .cal-dica { margin-left: auto; font-size: 13px; color: var(--ink-3); }
-  @media (max-width: 760px) { .cal-dica { margin-left: 0; flex-basis: 100%; } }
-
-  .stock-bar { height: 4px; border-radius: var(--pill); background: var(--surface-2); overflow: hidden; margin-top: 6px; width: 110px; }
-  :root[data-theme="dark"] .stock-bar { background: var(--line); }
-  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .stock-bar { background: var(--line); } }
-  .stock-bar i { display: block; height: 100%; background: var(--accent); border-radius: var(--pill); }
 
   /* ---------- empty ---------- */
   .empty { padding: 64px 24px; text-align: center; color: var(--ink-2); }
@@ -653,13 +586,6 @@
     display: flex; justify-content: flex-end; gap: 9px; align-items: center;
   }
   .dlg-foot .msg { margin-right: auto; font-size: 13px; color: var(--st-atrasado); }
-
-  .detail-grid { grid-template-columns: 1fr 1fr; display: grid; gap: 18px 20px; }
-  .detail-item { display: grid; gap: 5px; }
-  .detail-item.span-2 { grid-column: 1 / -1; }
-  .detail-label { font-size: 12.5px; color: var(--ink-3); }
-  .detail-value { font-size: 15px; line-height: 1.5; }
-  @media (max-width: 520px) { .detail-grid { grid-template-columns: 1fr; } }
 
   .hint { font-size: 13px; color: var(--ink-3); }
 

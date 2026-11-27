@@ -23,10 +23,9 @@ export const SUBABAS_DADOS: { valor: SubabaDados; rotulo: string }[] = [
 ]
 
 /** Subabas da área de Cadastros: tudo o que se cadastra no sistema fica junto aqui. */
-export type SubabaCadastros = 'materiais' | 'fornecedores' | 'representantes' | 'metas' | 'usuarios'
+export type SubabaCadastros = 'fornecedores' | 'representantes' | 'metas' | 'usuarios'
 
 const SUBABAS_CADASTROS: { valor: SubabaCadastros; rotulo: string }[] = [
-  { valor: 'materiais', rotulo: 'Materiais' },
   { valor: 'fornecedores', rotulo: 'Fornecedores' },
   { valor: 'representantes', rotulo: 'Representantes' },
   { valor: 'metas', rotulo: 'Metas' },
@@ -34,9 +33,8 @@ const SUBABAS_CADASTROS: { valor: SubabaCadastros; rotulo: string }[] = [
 ]
 
 /**
- * Materiais cadastra quem vê o almoxarifado (admin e supervisor); o resto é só do admin.
- * Lista vazia = a pessoa não vê a seção Cadastros.
+ * Cadastros é só do admin (os materiais saíram pro Retira). Lista vazia = a pessoa não vê a seção.
  */
-export function subabasCadastros(isAdmin: boolean, veAlmoxarifado: boolean) {
-  return SUBABAS_CADASTROS.filter((s) => (s.valor === 'materiais' ? veAlmoxarifado : isAdmin))
+export function subabasCadastros(isAdmin: boolean) {
+  return isAdmin ? SUBABAS_CADASTROS : []
 }

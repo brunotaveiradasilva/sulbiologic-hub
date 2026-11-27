@@ -10,11 +10,10 @@ import {
   type SubabaCampanhas,
   type SubabaDados,
 } from './navegacao'
-import type { Resumo } from '../types'
+import { URL_RETIRA } from './retira'
 
 /** Para onde um atalho da página inicial leva: a seção do menu e a subaba dela. */
 export type Destino =
-  | { aba: 'materiais' }
   | { aba: 'metas'; subaba: SubabaMetas }
   | { aba: 'campanhas'; subaba: SubabaCampanhas }
   | { aba: 'dados'; subaba: SubabaDados }
@@ -26,15 +25,16 @@ interface Props {
   isAdmin: boolean
   consultaMetas: boolean
   veAlmoxarifado: boolean
-  resumo: Resumo
   aoAbrir: (destino: Destino) => void
 }
 
 interface Cartao {
-  chave: Destino['aba']
+  chave: Destino['aba'] | 'retira'
   titulo: string
   descricao: string
   icone: ReactNode
+  /** Cartão que leva pra fora do hub: abre este endereço numa aba nova, em vez dos atalhos. */
+  href?: string
   atalhos: { rotulo: string; destino: Destino }[]
 }
 
@@ -45,17 +45,18 @@ function saudacao(hora = new Date().getHours()) {
 }
 
 /** Tela de entrada: um cartão por seção do menu lateral, com atalho direto pra cada subaba. */
-export function PaginaInicial({ nome, isAdmin, consultaMetas, veAlmoxarifado, resumo, aoAbrir }: Props) {
-  const cadastros = subabasCadastros(isAdmin, veAlmoxarifado)
+export function PaginaInicial({ nome, isAdmin, consultaMetas, veAlmoxarifado, aoAbrir }: Props) {
+  const cadastros = subabasCadastros(isAdmin)
   const cartoes: Cartao[] = [
     ...(veAlmoxarifado
       ? ([
           {
-            chave: 'materiais',
+            chave: 'retira',
             titulo: 'Materiais',
-            descricao: 'Retiradas e devoluções do almoxarifado: quem levou o quê e quando volta.',
+            descricao: 'O almoxarifado agora fica no Retira: materiais, retiradas e devoluções. Abre numa aba nova.',
             icone: <IconeMateriais />,
-            atalhos: [{ rotulo: 'Agendamentos', destino: { aba: 'materiais' } }],
+            href: URL_RETIRA,
+            atalhos: [],
           },
         ] satisfies Cartao[])
       : []),
@@ -96,21 +97,13 @@ export function PaginaInicial({ nome, isAdmin, consultaMetas, veAlmoxarifado, re
           {
             chave: 'cadastros',
             titulo: 'Cadastros',
-            descricao: isAdmin
-              ? 'Tudo o que se cadastra no sistema, num lugar só: materiais, fornecedores, representantes, metas e usuários.'
-              : 'Os materiais do almoxarifado que podem ser retirados.',
+            descricao: 'Tudo o que se cadastra no sistema, num lugar só: fornecedores, representantes, metas e usuários.',
             icone: <IconeCadastros />,
             atalhos: cadastros.map((s) => ({ rotulo: s.rotulo, destino: { aba: 'cadastros', subaba: s.valor } })),
           },
         ] satisfies Cartao[])
       : []),
   ]
-
-  const pendencias = [
-    resumo.atrasados ? `${resumo.atrasados} atrasado(s)` : null,
-    resumo.retiradasHoje ? `${resumo.retiradasHoje} retirada(s) hoje` : null,
-    resumo.devolucoesHoje ? `${resumo.devolucoesHoje} devolução(ões) hoje` : null,
-  ].filter(Boolean)
 
   return (
     <section className="view">
@@ -126,20 +119,30 @@ export function PaginaInicial({ nome, isAdmin, consultaMetas, veAlmoxarifado, re
       <div className="inicio-grid">
         {cartoes.map((c) => (
           <article key={c.chave} className="inicio-card">
-            <button type="button" className="inicio-card-topo" onClick={() => aoAbrir(c.atalhos[0].destino)}>
-              <span className="inicio-card-icone">{c.icone}</span>
-              <h3>{c.titulo}</h3>
-            </button>
+            {c.href ? (
+              <a className="inicio-card-topo" href={c.href} target="_blank" rel="noopener">
+                <span className="inicio-card-icone">{c.icone}</span>
+                <h3>{c.titulo}</h3>
+              </a>
+            ) : (
+              <button type="button" className="inicio-card-topo" onClick={() => aoAbrir(c.atalhos[0].destino)}>
+                <span className="inicio-card-icone">{c.icone}</span>
+                <h3>{c.titulo}</h3>
+              </button>
+            )}
             <p className="inicio-card-descricao">{c.descricao}</p>
-            {c.chave === 'materiais' && pendencias.length ? (
-              <p className={`inicio-card-alerta${resumo.atrasados ? ' is-atrasado' : ''}`}>{pendencias.join(' · ')}</p>
-            ) : null}
             <div className="inicio-card-atalhos">
-              {c.atalhos.map((a) => (
-                <button key={a.rotulo} type="button" className="btn btn-sm" onClick={() => aoAbrir(a.destino)}>
-                  {a.rotulo}
-                </button>
-              ))}
+              {c.href ? (
+                <a className="btn btn-sm" href={c.href} target="_blank" rel="noopener">
+                  Abrir o Retira ↗
+                </a>
+              ) : (
+                c.atalhos.map((a) => (
+                  <button key={a.rotulo} type="button" className="btn btn-sm" onClick={() => aoAbrir(a.destino)}>
+                    {a.rotulo}
+                  </button>
+                ))
+              )}
             </div>
           </article>
         ))}

@@ -1,20 +1,17 @@
 import { sessaoSalva } from '../features/auth/auth'
 import * as mock from './apiMock'
 import type {
-  Agendamento,
   ClienteCampanhaOrgannact,
   ClienteCampanhaWellpet,
   ClienteEspecialistaPet,
   Fornecedor,
   LoginGerado,
-  Material,
   MeuLogin,
   MeusDados,
   Meta,
   MetaRepresentante,
   PositivacaoClientes,
   Role,
-  Status,
   TotalVendidoMensal,
   UnidadeMeta,
   Representante,
@@ -209,51 +206,6 @@ export function trocarSenha(senhaAtual: string, novaSenha: string): Promise<void
 export function atualizarAvatar(avatar: string | null): Promise<void> {
   if (MOCK) return mock.atualizarAvatar(avatar)
   return requisitar('/api/auth/avatar', { method: 'PATCH', body: JSON.stringify({ avatar }) })
-}
-
-export function listarMateriais(): Promise<Material[]> {
-  if (MOCK) return mock.listarMateriais()
-  return requisitar('/api/materiais')
-}
-
-export function criarMaterial(material: Omit<Material, 'id'>): Promise<Material> {
-  if (MOCK) return mock.criarMaterial(material)
-  return requisitar('/api/materiais', { method: 'POST', body: JSON.stringify(material) })
-}
-
-export function atualizarMaterial(id: string, material: Omit<Material, 'id'>): Promise<Material> {
-  if (MOCK) return mock.atualizarMaterial(id, material)
-  return requisitar(`/api/materiais/${id}`, { method: 'PUT', body: JSON.stringify(material) })
-}
-
-export function excluirMaterial(id: string): Promise<void> {
-  if (MOCK) return mock.excluirMaterial(id)
-  return requisitar(`/api/materiais/${id}`, { method: 'DELETE' })
-}
-
-export function listarAgendamentos(): Promise<Agendamento[]> {
-  if (MOCK) return mock.listarAgendamentos()
-  return requisitar('/api/agendamentos')
-}
-
-export function criarAgendamento(agendamento: Omit<Agendamento, 'id'>): Promise<Agendamento> {
-  if (MOCK) return mock.criarAgendamento(agendamento)
-  return requisitar('/api/agendamentos', { method: 'POST', body: JSON.stringify(agendamento) })
-}
-
-export function atualizarAgendamento(id: string, agendamento: Omit<Agendamento, 'id'>): Promise<Agendamento> {
-  if (MOCK) return mock.atualizarAgendamento(id, agendamento)
-  return requisitar(`/api/agendamentos/${id}`, { method: 'PUT', body: JSON.stringify(agendamento) })
-}
-
-export function definirStatusAgendamento(id: string, status: Status): Promise<Agendamento> {
-  if (MOCK) return mock.definirStatusAgendamento(id, status)
-  return requisitar(`/api/agendamentos/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) })
-}
-
-export function excluirAgendamento(id: string): Promise<void> {
-  if (MOCK) return mock.excluirAgendamento(id)
-  return requisitar(`/api/agendamentos/${id}`, { method: 'DELETE' })
 }
 
 export function listarFornecedores(): Promise<Fornecedor[]> {

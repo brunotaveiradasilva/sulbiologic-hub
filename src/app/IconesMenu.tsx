@@ -71,3 +71,14 @@ export function IconeUsuarios() {
     </svg>
   )
 }
+
+/** Seta pra fora: o link abre outro app numa aba nova. */
+export function IconeSaida() {
+  return (
+    <svg viewBox="0 0 12 12" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M5 2.5H2.5v7h7V7" />
+      <path d="M7 2.5h2.5V5" />
+      <path d="M9.5 2.5 5.5 6.5" />
+    </svg>
+  )
+}

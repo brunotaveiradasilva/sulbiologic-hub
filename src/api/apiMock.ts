@@ -2,13 +2,11 @@ import { diasEntre, hoje, somarDias } from '../shared/lib/datas'
 import { mesAtual, mesFechado, somarMeses } from '../shared/lib/mes'
 import type { DadosUsuario, LinhaPlanilhaEspecialistaPet } from './api'
 import type {
-  Agendamento,
   ClienteCampanhaOrgannact,
   ClienteCampanhaWellpet,
   ClienteEspecialistaPet,
   Fornecedor,
   LoginGerado,
-  Material,
   MeuLogin,
   MeusDados,
   Meta,
@@ -16,7 +14,6 @@ import type {
   PositivacaoClientes,
   Representante,
   Role,
-  Status,
   TotalVendidoMensal,
   UnidadeMeta,
   UsuarioResumo,
@@ -44,59 +41,6 @@ function achar<T extends { id: string }>(lista: T[], id: string): T {
 let avatar: string | null = null
 let usuarios: UsuarioResumo[] = [
   { usuario: 'admin', role: 'ADMIN', nome: 'Ana', sobrenome: 'Exemplo', ativo: true, ultimoAcesso: new Date().toISOString() },
-]
-
-let materiais: Material[] = [
-  { id: novoId('mat'), nome: 'Furadeira de impacto', codigo: 'FER-014', estoque: 3, obs: 'Maleta com brocas no armário 2.' },
-  { id: novoId('mat'), nome: 'Projetor multimídia', codigo: 'AUD-002', estoque: 2, obs: 'Acompanha cabo HDMI e controle.' },
-  { id: novoId('mat'), nome: 'Escada de alumínio 6 degraus', codigo: 'EST-007', estoque: 4, obs: '' },
-]
-
-let agendamentos: Agendamento[] = [
-  {
-    id: novoId('age'),
-    materialId: materiais[1].id,
-    qtd: 1,
-    responsavel: 'Marina Alves',
-    cliente: 'Colégio Santa Cruz',
-    retirada: somarDias(-6),
-    devolucao: somarDias(-2),
-    status: 'retirado',
-    obs: 'Treinamento na sala 3.',
-  },
-  {
-    id: novoId('age'),
-    materialId: materiais[0].id,
-    qtd: 1,
-    responsavel: 'Carlos Prado',
-    cliente: 'Construtora Vale Verde',
-    retirada: somarDias(0),
-    devolucao: somarDias(2),
-    status: 'agendado',
-    obs: 'Instalação das prateleiras.',
-  },
-  {
-    id: novoId('age'),
-    materialId: materiais[2].id,
-    qtd: 2,
-    responsavel: 'Equipe de manutenção',
-    cliente: '',
-    retirada: somarDias(1),
-    devolucao: somarDias(4),
-    status: 'agendado',
-    obs: 'Uso interno.',
-  },
-  {
-    id: novoId('age'),
-    materialId: materiais[1].id,
-    qtd: 1,
-    responsavel: 'Júlia Ferraz',
-    cliente: 'Colégio Santa Cruz',
-    retirada: somarDias(-12),
-    devolucao: somarDias(-9),
-    status: 'devolvido',
-    obs: 'Devolvido sem o controle; reposto depois.',
-  },
 ]
 
 let fornecedores: Fornecedor[] = [
@@ -268,54 +212,6 @@ export function trocarSenha(): Promise<void> {
 
 export function atualizarAvatar(novoAvatar: string | null): Promise<void> {
   avatar = novoAvatar
-  return Promise.resolve()
-}
-
-export function listarMateriais(): Promise<Material[]> {
-  return Promise.resolve(materiais)
-}
-
-export function criarMaterial(material: Omit<Material, 'id'>): Promise<Material> {
-  const novo = { ...material, id: novoId('mat') }
-  materiais = [...materiais, novo]
-  return Promise.resolve(novo)
-}
-
-export function atualizarMaterial(id: string, material: Omit<Material, 'id'>): Promise<Material> {
-  const atualizado = { ...material, id }
-  materiais = materiais.map((m) => (m.id === id ? atualizado : m))
-  return Promise.resolve(atualizado)
-}
-
-export function excluirMaterial(id: string): Promise<void> {
-  materiais = materiais.filter((m) => m.id !== id)
-  return Promise.resolve()
-}
-
-export function listarAgendamentos(): Promise<Agendamento[]> {
-  return Promise.resolve(agendamentos)
-}
-
-export function criarAgendamento(agendamento: Omit<Agendamento, 'id'>): Promise<Agendamento> {
-  const novo = { ...agendamento, id: novoId('age') }
-  agendamentos = [...agendamentos, novo]
-  return Promise.resolve(novo)
-}
-
-export function atualizarAgendamento(id: string, agendamento: Omit<Agendamento, 'id'>): Promise<Agendamento> {
-  const atualizado = { ...agendamento, id }
-  agendamentos = agendamentos.map((a) => (a.id === id ? atualizado : a))
-  return Promise.resolve(atualizado)
-}
-
-export function definirStatusAgendamento(id: string, status: Status): Promise<Agendamento> {
-  const atualizado = { ...achar(agendamentos, id), status }
-  agendamentos = agendamentos.map((a) => (a.id === id ? atualizado : a))
-  return Promise.resolve(atualizado)
-}
-
-export function excluirAgendamento(id: string): Promise<void> {
-  agendamentos = agendamentos.filter((a) => a.id !== id)
   return Promise.resolve()
 }
 

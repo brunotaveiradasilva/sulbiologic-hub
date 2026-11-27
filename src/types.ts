@@ -1,6 +1,6 @@
 /**
  * Nível de acesso do login. ADMIN gerencia tudo; SUPERVISOR consulta metas e campanhas de todos os
- * representantes; REPRESENTANTE consulta só as dele; USUARIO só o almoxarifado. Supervisor e
+ * representantes; REPRESENTANTE consulta só as dele; USUARIO só o atalho pro Retira (o almoxarifado saiu do hub). Supervisor e
  * representante não editam nada — e quem filtra o que o representante enxerga é a API.
  */
 export type Role = 'ADMIN' | 'SUPERVISOR' | 'REPRESENTANTE' | 'USUARIO'
@@ -58,36 +58,6 @@ export interface LoginGerado {
   representanteNome?: string | null
   celular?: string | null
   email?: string | null
-}
-
-/** Status guardado no agendamento. */
-export type Status = 'agendado' | 'retirado' | 'devolvido'
-
-/** Status mostrado na tela — inclui "atrasado", que é calculado a partir da data. */
-export type StatusExibido = Status | 'atrasado'
-
-export interface Material {
-  id: string
-  nome: string
-  codigo: string
-  /** Quantidade total que existe no almoxarifado. */
-  estoque: number
-  obs: string
-}
-
-export interface Agendamento {
-  id: string
-  materialId: string
-  qtd: number
-  responsavel: string
-  /** Cliente para quem o material vai. Vazio em retiradas de uso interno. */
-  cliente: string
-  /** Data no formato ISO (AAAA-MM-DD). */
-  retirada: string
-  /** Data no formato ISO (AAAA-MM-DD). */
-  devolucao: string
-  status: Status
-  obs: string
 }
 
 export interface Fornecedor {
@@ -284,21 +254,6 @@ export interface ClienteCampanhaOrgannact {
   /** Semana (1 a 4) da primeira compra; null enquanto não positivou. */
   semanaPositivacao: number | null
 }
-
-export interface Dados {
-  materiais: Material[]
-  agendamentos: Agendamento[]
-}
-
-export interface Resumo {
-  retiradasHoje: number
-  devolucoesHoje: number
-  emPosse: number
-  atrasados: number
-}
-
-/** Filtro da lista de agendamentos. */
-export type Filtro = 'todos' | StatusExibido
 
 /** Vendas menos devoluções num período, sem bonificação — mesma regra do realizado das metas. */
 export interface ValoresVenda {
