@@ -1,5 +1,5 @@
-import { Fragment, useEffect, useRef, useState, type CSSProperties } from 'react'
-import { IconeCadastros, IconeCampanhas, IconeDados, IconeInicio, IconeMateriais, IconeMetas } from './IconesMenu'
+import { Fragment, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { IconeCadastros, IconeCampanhas, IconeDados, IconeInicio, IconeMateriais, IconeMetas, IconeSaida } from './IconesMenu'
 import { Logo } from '../shared/components/Logo'
 import { SeletorTema } from '../shared/components/SeletorTema'
 import {
@@ -12,9 +12,10 @@ import {
   type SubabaCampanhas,
   type SubabaDados,
 } from './navegacao'
+import { URL_RETIRA } from './retira'
 
 /** 'conta' (Minha conta) não aparece na lista do menu: abre pelo menu da foto, embaixo. */
-export type AbaPrincipal = 'inicio' | 'materiais' | 'metas' | 'campanhas' | 'dados' | 'cadastros' | 'conta'
+export type AbaPrincipal = 'inicio' | 'metas' | 'campanhas' | 'dados' | 'cadastros' | 'conta'
 
 interface Props {
   aba: AbaPrincipal
@@ -37,6 +38,17 @@ interface Props {
   aoAbrirUsuarios: () => void
   aoAbrirConta: () => void
   aoSair: () => void
+}
+
+interface Secao {
+  /** Seção do hub; null = atalho que sai do hub (abre `href` numa aba nova). */
+  aba: AbaPrincipal | null
+  chave: string
+  href?: string
+  rotulo: string
+  curto: string
+  icone: ReactNode
+  subitens: { valor: string; rotulo: string; ativo: boolean; escolher: () => void }[]
 }
 
 /** Quantas seções cabem na barra de baixo do celular sem apertar os nomes (fora a conta/Mais). */
@@ -90,14 +102,18 @@ export function MenuLateral({
     aoMudarAba(destino)
   }
 
-  const cadastros = subabasCadastros(isAdmin, veAlmoxarifado)
-  const secoes = [
-    { aba: 'inicio' as const, rotulo: 'Início', curto: 'Início', icone: <IconeInicio />, subitens: [] },
+  const cadastros = subabasCadastros(isAdmin)
+  const secoes: Secao[] = [
+    { aba: 'inicio', chave: 'inicio', rotulo: 'Início', curto: 'Início', icone: <IconeInicio />, subitens: [] },
     ...(veAlmoxarifado
       ? [
           {
-            aba: 'materiais' as const,
-            rotulo: 'Materiais', curto: 'Agenda',
+            // O almoxarifado agora é o Retira: o item abre o app dele numa aba nova.
+            aba: null,
+            chave: 'retira',
+            href: URL_RETIRA,
+            rotulo: 'Materiais',
+            curto: 'Materiais',
             icone: <IconeMateriais />,
             subitens: [],
           },
@@ -107,6 +123,7 @@ export function MenuLateral({
       ? [
           {
             aba: 'metas' as const,
+            chave: 'metas',
             rotulo: 'Metas', curto: 'Metas',
             icone: <IconeMetas />,
             subitens: SUBABAS_METAS.map((s) => ({
@@ -117,6 +134,7 @@ export function MenuLateral({
           },
           {
             aba: 'campanhas' as const,
+            chave: 'campanhas',
             rotulo: 'Campanhas', curto: 'Campanha',
             icone: <IconeCampanhas />,
             subitens: SUBABAS_CAMPANHAS.map((s) => ({
@@ -131,6 +149,7 @@ export function MenuLateral({
       ? [
           {
             aba: 'dados' as const,
+            chave: 'dados',
             rotulo: 'Dados', curto: 'Dados',
             icone: <IconeDados />,
             subitens: SUBABAS_DADOS.map((s) => ({
@@ -145,6 +164,7 @@ export function MenuLateral({
       ? [
           {
             aba: 'cadastros' as const,
+            chave: 'cadastros',
             rotulo: 'Cadastros', curto: 'Cadastro',
             icone: <IconeCadastros />,
             subitens: cadastros.map((s) => ({
@@ -175,14 +195,34 @@ export function MenuLateral({
           const aberta = ativa && !recolhida
           const temSubitens = secao.subitens.length > 0
           const excedente = i >= naBarra.length
+          if (secao.href) {
+            return (
+              <a
+                key={secao.chave}
+                href={secao.href}
+                target="_blank"
+                rel="noopener"
+                className={`menu-lateral-item${excedente ? ' so-desktop' : ''}`}
+                title="Abre o Retira numa aba nova"
+              >
+                {secao.icone}
+                <span className="menu-lateral-rotulo">{secao.rotulo}</span>
+                <span className="menu-lateral-rotulo-curto" aria-hidden="true">{secao.curto}</span>
+                <span className="menu-lateral-seta" aria-hidden="true">
+                  <IconeSaida />
+                </span>
+              </a>
+            )
+          }
+          const destino = secao.aba as AbaPrincipal
           return (
-            <Fragment key={secao.aba}>
+            <Fragment key={secao.chave}>
               <button
                 type="button"
                 className={`menu-lateral-item${ativa ? ' is-ativo' : ''}${excedente ? ' so-desktop' : ''}`}
                 aria-current={ativa ? 'page' : undefined}
                 aria-expanded={ativa && temSubitens ? aberta : undefined}
-                onClick={() => clicarSecao(secao.aba)}
+                onClick={() => clicarSecao(destino)}
               >
                 {secao.icone}
                 <span className="menu-lateral-rotulo">{secao.rotulo}</span>
@@ -236,22 +276,36 @@ export function MenuLateral({
             <SeletorTema />
             {excedentes.length ? (
               <div className="menu-folha-secoes so-celular">
-                {excedentes.map((secao) => (
-                  <button
-                    key={secao.aba}
-                    type="button"
-                    role="menuitem"
-                    className={aba === secao.aba ? 'is-ativo' : undefined}
-                    aria-current={aba === secao.aba ? 'page' : undefined}
-                    onClick={() => {
-                      setAberto(false)
-                      if (secao.aba !== aba) aoMudarAba(secao.aba)
-                    }}
-                  >
-                    {secao.icone}
-                    {secao.rotulo}
-                  </button>
-                ))}
+                {excedentes.map((secao) =>
+                  secao.href ? (
+                    <a
+                      key={secao.chave}
+                      href={secao.href}
+                      target="_blank"
+                      rel="noopener"
+                      role="menuitem"
+                      onClick={() => setAberto(false)}
+                    >
+                      {secao.icone}
+                      {secao.rotulo}
+                    </a>
+                  ) : (
+                    <button
+                      key={secao.chave}
+                      type="button"
+                      role="menuitem"
+                      className={aba === secao.aba ? 'is-ativo' : undefined}
+                      aria-current={aba === secao.aba ? 'page' : undefined}
+                      onClick={() => {
+                        setAberto(false)
+                        if (secao.aba && secao.aba !== aba) aoMudarAba(secao.aba)
+                      }}
+                    >
+                      {secao.icone}
+                      {secao.rotulo}
+                    </button>
+                  ),
+                )}
               </div>
             ) : null}
             <button

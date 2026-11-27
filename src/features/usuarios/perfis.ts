@@ -5,5 +5,5 @@ export const PERFIS: { valor: Role; rotulo: string; descricao: string }[] = [
   { valor: 'REPRESENTANTE', rotulo: 'Representante', descricao: 'Consulta só as próprias metas e campanhas.' },
   { valor: 'SUPERVISOR', rotulo: 'Supervisor', descricao: 'Consulta as metas e campanhas de todos os representantes.' },
   { valor: 'ADMIN', rotulo: 'Administrador', descricao: 'Gerencia tudo, inclusive os usuários.' },
-  { valor: 'USUARIO', rotulo: 'Almoxarifado', descricao: 'Só materiais e agendamentos.' },
+  { valor: 'USUARIO', rotulo: 'Almoxarifado', descricao: 'Só o atalho pro Retira, onde ficam os materiais.' },
 ]

@@ -23,8 +23,8 @@ O Hub resolve isso puxando os números direto do ERP e aplicando as regras de ca
 | **Metas** | Metas mensais por fornecedor e representante em R$, kg, unidades ou clientes positivados; visão por representante e por fornecedor; cópia das metas do mês anterior; exportação em PDF |
 | **Campanhas** | Especialista Pet (importa a planilha do fornecedor e cruza com as vendas), positivação Wellpet e Organnact, com faixas de progresso e PDF por representante |
 | **Dados** | Comparativo de vendas: mês × mesmo mês do ano anterior, mês × mês anterior, acumulado do ano ou períodos livres, filtrando por representante e fornecedor |
-| **Materiais** | Agendamento de retirada e devolução, atraso calculado automaticamente, checagem de disponibilidade por período, visão em lista e calendário |
-| **Cadastros** | Fornecedores, representantes, metas, materiais e usuários; geração de logins em lote para os representantes |
+| **Materiais** | Atalho pro [Retira](https://retira-nine.vercel.app), o app próprio do almoxarifado (retiradas, devoluções e cadastro de materiais) |
+| **Cadastros** | Fornecedores, representantes, metas e usuários; geração de logins em lote para os representantes |
 | **Conta** | Quatro perfis de acesso (administrador, supervisor, representante, almoxarifado), troca de senha e foto |
 
 | | |
@@ -75,7 +75,6 @@ src/
 │   ├── metas/                # metas por representante/fornecedor, realizado, PDF
 │   ├── campanhas/            # Especialista Pet, Wellpet, Organnact (regras + PDFs)
 │   ├── dados/                # comparativo de vendas entre períodos
-│   ├── almoxarifado/         # agendamentos, calendário, regras de atraso e disponibilidade
 │   ├── cadastros/            # fornecedores, representantes e metas
 │   └── usuarios/             # usuários, geração de logins, Minha conta
 └── shared/

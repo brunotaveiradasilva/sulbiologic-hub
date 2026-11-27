@@ -1,7 +1,7 @@
 import { MODO_DEMO } from '../api/api'
 import { useAuth } from '../features/auth/useAuth'
 import { TelaLogin } from '../features/auth/TelaLogin'
-import { PainelAlmoxarifado } from './PainelAlmoxarifado'
+import { PainelHub } from './PainelHub'
 import { AvisoServidorAcordando } from '../features/auth/AvisoServidorAcordando'
 
 /**
@@ -22,7 +22,7 @@ export default function App() {
 
   return (
     <>
-      <PainelAlmoxarifado
+      <PainelHub
         usuario={auth.usuario}
         nomeExibido={auth.nomeExibido ?? auth.usuario}
         isAdmin={auth.isAdmin}

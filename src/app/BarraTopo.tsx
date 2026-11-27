@@ -3,7 +3,6 @@ import type { AbaPrincipal } from './MenuLateral'
 
 const TITULOS: Record<AbaPrincipal, string> = {
   inicio: 'Início',
-  materiais: 'Materiais',
   metas: 'Metas',
   campanhas: 'Campanhas',
   dados: 'Dados',
